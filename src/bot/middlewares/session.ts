@@ -7,6 +7,7 @@ type Options = Pick<SessionOptions<SessionData, Context>, 'getSessionKey' | 'sto
 export function session(options: Options): Middleware<Context> {
   return createSession({
     getSessionKey: options.getSessionKey,
+    // @ts-expect-error bug
     storage: options.storage,
     initial: () => ({}),
   })
