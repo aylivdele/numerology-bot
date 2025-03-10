@@ -22,4 +22,5 @@ admin-commands-updated = Commands updated.
 
 ## Unhandled Feature
 
-unhandled = Unrecognized command. Try /start
+unhandled = Неизвестная команда. Попробуйте /start
+unhandled-ready = Неизвестная команда. Попробуйте /main

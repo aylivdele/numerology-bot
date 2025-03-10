@@ -1,3 +1,5 @@
+import type { ReplyKeyboardRemove } from '@grammyjs/types'
+
 export function chunk<T>(array: T[], size: number) {
   const result = []
   for (let index = 0; index < array.length; index += size)
@@ -5,3 +7,5 @@ export function chunk<T>(array: T[], size: number) {
 
   return result
 }
+
+export const removeKeyboard: ReplyKeyboardRemove = { remove_keyboard: true }
