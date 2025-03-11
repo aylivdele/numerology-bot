@@ -11,7 +11,7 @@ const feature = composer.chatType('private')
 
 feature.command('main', logHandle('command-main'), (ctx) => {
   if (checkSession(ctx)) {
-    return ctx.reply(MAIN_MESSAGE, { reply_markup: MAIN_KEYBOARD })
+    return ctx.conversation.exitAll().then(() => ctx.reply(MAIN_MESSAGE, { reply_markup: MAIN_KEYBOARD }))
   }
   return ctx.reply(ctx.t('unhandled'), { reply_markup: removeKeyboard })
 })

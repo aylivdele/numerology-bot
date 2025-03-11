@@ -63,11 +63,12 @@ export function createBot(token: string, dependencies: Dependencies, botConfig?:
   }))
   protectedBot.use(i18n)
   protectedBot.use(conversations())
+  protectedBot.use(mainFeature)
+
   protectedBot.use(...myConversations)
 
   // Handlers
   protectedBot.use(...conversationFeatures)
-  protectedBot.use(mainFeature)
   protectedBot.use(adminFeature)
   if (isMultipleLocales)
     protectedBot.use(languageFeature)

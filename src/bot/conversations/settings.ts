@@ -79,9 +79,6 @@ export async function settingsConversation(conversation: Conversation<Context, D
     ]],
   }
 
-  const session = await conversation.external(ctx => ctx.session)
-
-  await ctx.reply(JSON.stringify(session))
   await ctx.reply('Твои данные сохранены. Теперь ты можешь получать персональные прогнозы и разборы!', { reply_markup: keyboard })
 
   const nextStep = await conversation.form.select([toForecasts, toSettings], {
