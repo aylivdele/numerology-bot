@@ -16,6 +16,8 @@ const configSchema = v.variant('botMode', [
     v.object({
       botMode: v.literal('polling'),
       ...baseConfigSchema.entries,
+      serverHost: v.optional(v.string(), '0.0.0.0'),
+      serverPort: v.optional(v.pipe(v.string(), v.transform(Number), v.number()), '80'),
     }),
     v.transform(input => ({
       ...input,
