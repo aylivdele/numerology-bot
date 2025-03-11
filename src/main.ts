@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
 /* eslint-disable antfu/no-top-level-await */
 
+import type { Bot } from '#root/bot/index.js'
 import type { Config, PollingConfig, WebhookConfig } from '#root/config.js'
 import type { RunnerHandle } from '@grammyjs/runner'
 import process from 'node:process'
@@ -10,8 +11,24 @@ import { logger } from '#root/logger.js'
 import { testNetwork } from '#root/neural-network/index.js'
 import { createServer, createServerManager } from '#root/server/index.js'
 import { run } from '@grammyjs/runner'
+import pg from 'pg'
 
-type Bot = ReturnType<typeof createBot>
+async function createPostgreClient(config: Config) {
+  if (config.databaseString) {
+    try {
+      const client = new pg.Client({
+        connectionString: config.databaseString,
+      })
+      await client.connect()
+      logger.info('Successfully connected to database')
+      return client
+    }
+    catch (error) {
+      logger.error(error, 'Error connection to postgres')
+    }
+  }
+  return undefined
+}
 
 async function startServer(bot: Bot, config: Config) {
   const server = createServer({
@@ -39,10 +56,10 @@ async function startServer(bot: Bot, config: Config) {
 }
 
 async function startPolling(config: PollingConfig) {
-  const bot = createBot(config.botToken, {
+  const bot = await createBot(config.botToken, {
     config,
     logger,
-  })
+  }, undefined, await createPostgreClient(config))
   let runner: undefined | RunnerHandle
 
   // graceful shutdown
@@ -74,10 +91,10 @@ async function startPolling(config: PollingConfig) {
 }
 
 async function startWebhook(config: WebhookConfig) {
-  const bot = createBot(config.botToken, {
+  const bot = await createBot(config.botToken, {
     config,
     logger,
-  })
+  }, undefined, await createPostgreClient(config))
 
   await bot.init()
 

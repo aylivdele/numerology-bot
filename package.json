@@ -15,7 +15,7 @@
   },
   "scripts": {
     "lint": "eslint .",
-    "format": "eslint . --fix",
+    "fix": "eslint . --fix",
     "typecheck": "tsc",
     "build": "tsc --noEmit false",
     "dev": "tsc-watch --onSuccess \"tsx ./src/main.ts\"",
@@ -31,6 +31,7 @@
     "@grammyjs/i18n": "1.1.2",
     "@grammyjs/parse-mode": "1.11.1",
     "@grammyjs/runner": "2.0.3",
+    "@grammyjs/storage-psql": "^2.5.1",
     "@grammyjs/types": "3.19.0",
     "@hono/node-server": "1.13.8",
     "callback-data": "1.1.1",
@@ -38,6 +39,7 @@
     "hono": "4.7.2",
     "iso-639-1": "3.1.5",
     "openai": "^4.86.2",
+    "pg": "^8.13.3",
     "pino": "9.6.0",
     "pino-pretty": "13.0.0",
     "tsx": "4.19.3",
@@ -46,6 +48,7 @@
   "devDependencies": {
     "@antfu/eslint-config": "4.3.0",
     "@types/node": "^22.13.8",
+    "@types/pg": "^8.11.11",
     "eslint": "^9.21.0",
     "husky": "^9.1.7",
     "lint-staged": "^15.4.3",

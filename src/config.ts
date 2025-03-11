@@ -11,6 +11,7 @@ const baseConfigSchema = v.object({
   serverHost: v.optional(v.string(), '0.0.0.0'),
   serverPort: v.optional(v.pipe(v.string(), v.transform(Number), v.number()), '80'),
   networkToken: v.undefinedable(v.string()),
+  databaseString: v.undefinedable(v.string()),
 })
 
 const configSchema = v.variant('botMode', [

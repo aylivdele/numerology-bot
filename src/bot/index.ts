@@ -2,6 +2,7 @@ import type { Context, SessionData } from '#root/bot/context.js'
 import type { Config } from '#root/config.js'
 import type { Logger } from '#root/logger.js'
 import type { BotConfig } from 'grammy'
+import type pg from 'pg'
 import { myConversations } from '#root/bot/conversations/index.js'
 import { adminFeature } from '#root/bot/features/admin.js'
 import { conversationFeatures } from '#root/bot/features/index.js'
@@ -17,6 +18,7 @@ import { conversations } from '@grammyjs/conversations'
 import { hydrate } from '@grammyjs/hydrate'
 import { hydrateReply, parseMode } from '@grammyjs/parse-mode'
 import { sequentialize } from '@grammyjs/runner'
+import { PsqlAdapter } from '@grammyjs/storage-psql'
 import { MemorySessionStorage, Bot as TelegramBot } from 'grammy'
 
 interface Dependencies {
@@ -28,7 +30,7 @@ function getSessionKey(ctx: Omit<Context, 'session'>) {
   return ctx.chat?.id.toString()
 }
 
-export function createBot(token: string, dependencies: Dependencies, botConfig?: BotConfig<Context>) {
+export async function createBot(token: string, dependencies: Dependencies, botConfig?: BotConfig<Context>, dbClient?: pg.Client) {
   const {
     config,
     logger,
@@ -59,7 +61,8 @@ export function createBot(token: string, dependencies: Dependencies, botConfig?:
   protectedBot.use(hydrate())
   protectedBot.use(session({
     getSessionKey,
-    storage: new MemorySessionStorage<SessionData>(),
+    // @ts-expect-error not possible to set generic type of PsqlAdapter
+    storage: dbClient ? (await PsqlAdapter.create({ client: dbClient, tableName: 'session' })) : new MemorySessionStorage<SessionData>(),
   }))
   protectedBot.use(i18n)
   protectedBot.use(conversations())
@@ -79,4 +82,4 @@ export function createBot(token: string, dependencies: Dependencies, botConfig?:
   return bot
 }
 
-export type Bot = ReturnType<typeof createBot>
+export type Bot = Awaited<ReturnType<typeof createBot>>
