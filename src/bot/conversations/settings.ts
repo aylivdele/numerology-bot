@@ -46,7 +46,7 @@ export async function settingsConversation(conversation: Conversation<Context, D
     ctx = await conversation.wait()
 
     if (ctx.hasText(/(\d{2})[./\\](\d{2})[./\\](\d{4})/)) {
-      const birthday = `${ctx.match[1]}.${ctx.match[2]}.${ctx.match[3]}`
+      const birthday = `${ctx.match[2]}.${ctx.match[1]}.${ctx.match[3]}`
       const date = Date.parse(birthday)
       if (!Number.isNaN(date) && date > -2177452800000) {
         await updateSession(conversation, 'birthday', birthday)

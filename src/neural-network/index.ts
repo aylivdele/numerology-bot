@@ -7,10 +7,12 @@ const openai = new OpenAI({
 })
 
 export function testNetwork() {
+  return
   const completion = openai.chat.completions.create({
     model: 'gpt-4o-mini',
     store: true,
     messages: [
+      { role: 'system', content: 'Сделай предсказание на ближающую неделю для козерога' },
       { role: 'user', content: 'Сделай предсказание на ближающую неделю для козерога' },
     ],
   })
