@@ -10,7 +10,7 @@ const openai = new OpenAI({
 let systemPrompt: string | undefined
 
 try {
-  systemPrompt = fs.readFileSync('./system_prompt.txt').toString()
+  systemPrompt = fs.readFileSync('prompts/system_prompt.txt').toString()
 }
 catch (error) {
   logger.error(error, 'Could not open system prompt file')

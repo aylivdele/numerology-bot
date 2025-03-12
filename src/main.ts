@@ -8,7 +8,6 @@ import process from 'node:process'
 import { createBot } from '#root/bot/index.js'
 import { config } from '#root/config.js'
 import { logger } from '#root/logger.js'
-import { testNetwork } from '#root/neural-network/index.js'
 import { createServer, createServerManager } from '#root/server/index.js'
 import { run } from '@grammyjs/runner'
 import pg from 'pg'
@@ -116,7 +115,7 @@ try {
     await startWebhook(config)
   else if (config.isPollingMode)
     await startPolling(config)
-  testNetwork()
+  // testNetwork()
 }
 catch (error) {
   logger.error(error)
