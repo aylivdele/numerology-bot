@@ -11,7 +11,8 @@ const feature = composer.chatType('private')
 
 feature.hears(ANALYZE_CONVERSATION, logHandle(`hears-${ANALYZE_CONVERSATION_ID}`), (ctx) => {
   if (checkSession(ctx)) {
-    return ctx.conversation.enter(ANALYZE_CONVERSATION_ID)
+    ctx.conversation.enter(ANALYZE_CONVERSATION_ID)
+    return
   }
   return ctx.reply(ctx.t('unhandled'), { reply_markup: removeKeyboard })
 })

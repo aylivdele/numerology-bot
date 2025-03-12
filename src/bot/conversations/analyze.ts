@@ -41,7 +41,7 @@ export async function analyzeConversation(conversation: Conversation<Context, Co
 
   await ctx.reply('Ждем ответа от звезд...', { reply_markup: removeKeyboard })
 
-  const answer = await conversation.external(() => askAI(prompt)).catch(() => null) ?? 'Ошибка, обратитесь к администрации'
+  const answer = (await conversation.external(async () => await askAI(prompt).catch(() => null))) ?? 'Ошибка, обратитесь к администрации'
 
   await ctx.reply(answer)
 
