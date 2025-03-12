@@ -1,10 +1,9 @@
 import type { Context } from '#root/bot/context.js'
 import type { Conversation } from '@grammyjs/conversations'
-import type { Context as DefaultContext } from 'grammy'
 import { MAIN_KEYBOARD, MAIN_MESSAGE } from '#root/bot/conversations/main.js'
 import { askAI } from '#root/neural-network/index.js'
 
-export async function questionConversation(conversation: Conversation<Context, DefaultContext>, ctx: DefaultContext) {
+export async function questionConversation(conversation: Conversation<Context, Context>, ctx: Context) {
   await ctx.reply(`Сформулируйте свой вопрос. Например:
     "Когда лучше начинать новый проект?"
     "Стоит ли менять работу в этом месяце?"`, { reply_markup: { remove_keyboard: true } })
@@ -20,9 +19,11 @@ export async function questionConversation(conversation: Conversation<Context, D
   У меня вопрос: ${select}.
   Дай ответ в формате "${session.format}"`
 
+  const msg = await ctx.reply('Ждем ответа от звезд...')
+
   const answer = await conversation.external(() => askAI(prompt)).catch(() => null) ?? 'Ошибка, обратитесь к администрации'
 
-  await ctx.reply(answer)
+  await msg.editText(answer)
 
   await ctx.reply(MAIN_MESSAGE, { reply_markup: MAIN_KEYBOARD })
 }

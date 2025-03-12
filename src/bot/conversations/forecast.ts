@@ -1,11 +1,10 @@
 import type { Context } from '#root/bot/context.js'
 import type { Conversation } from '@grammyjs/conversations'
-import type { Context as DefaultContext } from 'grammy'
 import { MAIN_KEYBOARD, MAIN_MESSAGE, TO_MAIN_MENU } from '#root/bot/conversations/main.js'
 import { askAI } from '#root/neural-network/index.js'
 import { Keyboard } from 'grammy'
 
-export async function forecastConversation(conversation: Conversation<Context, DefaultContext>, ctx: DefaultContext) {
+export async function forecastConversation(conversation: Conversation<Context, Context>, ctx: Context) {
   const week = 'На неделю'
   const month = 'На месяц'
   const special = 'Специальный разбор'
@@ -53,22 +52,31 @@ export async function forecastConversation(conversation: Conversation<Context, D
   ${period === special ? 'У меня вопрос: ' : 'Мне нужен '} ${periodString}
   Дай ответ в формате "${session.format}"`
 
-  await ctx.reply('Ждем ответа от звезд...')
+  let msg = await ctx.reply('Ждем ответа от звезд...')
 
-  const answer = await conversation.external(() => askAI(prompt)).catch(() => null) ?? 'Ошибка, обратитесь к администрации'
+  const errorAnswer = 'Ошибка, обратитесь к администрации'
 
-  await ctx.editMessageText(`${periodString}\n${answer}`)
+  let answer = await conversation.external(() => askAI(prompt)).catch(() => null) ?? errorAnswer
+
+  msg.editText(`${periodString}\n${answer}`)
 
   const advice = 'Получить совет'
   const secondKeyboard = new Keyboard().persistent().resized().text(advice).row().text(TO_MAIN_MENU)
 
-  await ctx.reply('Вы также можете получить советы по прогнозу (детализация прогноза + что делать)', { reply_markup: secondKeyboard })
-  const select = await conversation.form.select([advice, TO_MAIN_MENU], {
-    otherwise: ctx => ctx.reply('Пожалуйста, используйте кнопки'),
-  })
+  if (answer !== errorAnswer) {
+    await ctx.reply('Вы также можете получить советы по прогнозу (детализация прогноза + что делать)', { reply_markup: secondKeyboard })
+    const select = await conversation.form.select([advice, TO_MAIN_MENU], {
+      otherwise: ctx => ctx.reply('Пожалуйста, используйте кнопки'),
+    })
 
-  if (select === advice) {
-    await ctx.reply('<Ответ нейронки на запрос с детализацией запроса>')
+    if (select === advice) {
+      msg = await ctx.reply('Ждем ответа от звезд...')
+
+      answer = await conversation.external(() => askAI('Детализируй прогноз и дай советы "что делать".', prompt, answer)).catch(() => null) ?? errorAnswer
+
+      msg.editText(`${answer}`)
+    }
   }
+
   await ctx.reply(MAIN_MESSAGE, { reply_markup: MAIN_KEYBOARD })
 }

@@ -1,10 +1,10 @@
 import type { Context } from '#root/bot/context.js'
 import type { Conversation } from '@grammyjs/conversations'
-import type { Context as DefaultContext } from 'grammy'
 import { MAIN_KEYBOARD, MAIN_MESSAGE } from '#root/bot/conversations/main.js'
+import { askAI } from '#root/neural-network/index.js'
 import { Keyboard } from 'grammy'
 
-export async function analyzeConversation(conversation: Conversation<Context, DefaultContext>, ctx: DefaultContext) {
+export async function analyzeConversation(conversation: Conversation<Context, Context>, ctx: Context) {
   const strongs = 'Сильные стороны и таланты'
   const path = 'Кармический путь'
   const growth = 'Лучшие периоды для роста'
@@ -19,14 +19,30 @@ export async function analyzeConversation(conversation: Conversation<Context, De
 
   const session = await conversation.external(ctx => ctx.session)
 
-  const prompt = `Запрос: анализ личности - ${select}
-  Имя пользователя: ${session.name}
-  Дата рождения: ${session.birthday}
-  Предпочитаемый формат прогнозов: ${session.format}
-  Интересующие темы: ${session.interests.join(', ')}
-  `
+  let question = ''
 
-  await ctx.reply(`Разбор ваших сильных сторон:\n\n<Ответ нейронки на следующий промт:\n ${prompt}>`)
+  switch (select) {
+    case strongs:
+      question = 'Расскажи про мои сильные стороны и таланты'
+      break
+    case path:
+      question = 'Расскажи про мой кармический путь'
+      break
+    case growth:
+      question = 'Расскажи про мои лучшие периоды для роста'
+      break
+  }
+
+  const prompt = `Привет! Меня зовут ${session.name}, дата моего рождения: ${session.birthday}.
+  Интересующие меня темы: ${session.interests.join(', ')}.
+  ${question}
+  Дай ответ в формате "${session.format}"`
+
+  const msg = await ctx.reply('Ждем ответа от звезд...')
+
+  const answer = await conversation.external(() => askAI(prompt)).catch(() => null) ?? 'Ошибка, обратитесь к администрации'
+
+  msg.editText(`${answer}`)
 
   await ctx.reply(MAIN_MESSAGE, { reply_markup: MAIN_KEYBOARD })
 }
