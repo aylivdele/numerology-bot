@@ -42,7 +42,7 @@ export async function analyzeConversation(conversation: Conversation<Context, Co
 
   const answer = await conversation.external(() => askAI(prompt)).catch(() => null) ?? 'Ошибка, обратитесь к администрации'
 
-  ctx.api.editMessageText(msg.chat.id, msg.message_id, answer)
+  await ctx.api.editMessageText(msg.chat.id, msg.message_id, answer)
 
   await ctx.reply(MAIN_MESSAGE, { reply_markup: MAIN_KEYBOARD })
 }

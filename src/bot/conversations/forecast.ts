@@ -58,7 +58,7 @@ export async function forecastConversation(conversation: Conversation<Context, C
 
   let answer = await conversation.external(() => askAI(prompt)).catch(() => null) ?? errorAnswer
 
-  ctx.api.editMessageText(msg.chat.id, msg.message_id, `${periodString}\n${answer}`)
+  await ctx.api.editMessageText(msg.chat.id, msg.message_id, `${periodString}\n${answer}`)
 
   const advice = 'Получить совет'
   const secondKeyboard = new Keyboard().persistent().resized().text(advice).row().text(TO_MAIN_MENU)
