@@ -2,6 +2,7 @@ import type { Context } from '#root/bot/context.js'
 import type { Conversation } from '@grammyjs/conversations'
 import type { Context as DefaultContext } from 'grammy'
 import { MAIN_KEYBOARD, MAIN_MESSAGE, TO_MAIN_MENU } from '#root/bot/conversations/main.js'
+import { askAI } from '#root/neural-network/index.js'
 import { Keyboard } from 'grammy'
 
 export async function forecastConversation(conversation: Conversation<Context, DefaultContext>, ctx: DefaultContext) {
@@ -47,14 +48,16 @@ export async function forecastConversation(conversation: Conversation<Context, D
 
   const session = await conversation.external(ctx => ctx.session)
 
-  const prompt = `Запрос: ${periodString}
-  Имя пользователя: ${session.name}
-  Дата рождения: ${session.birthday}
-  Предпочитаемый формат прогнозов: ${session.format}
-  Интересующие темы: ${session.interests.join(', ')}
-  `
+  const prompt = `Привет! Меня зовут ${session.name}, дата моего рождения: ${session.birthday}.
+  Интересующие меня темы: ${session.interests.join(', ')}.
+  ${period === special ? 'У меня вопрос: ' : 'Мне нужен '} ${periodString}
+  Дай ответ в формате "${session.format}"`
 
-  await ctx.reply(`${periodString}\n\n<Ответ нейронки на следующий промт:\n ${prompt}>`)
+  await ctx.reply('Ждем ответа от звезд...')
+
+  const answer = await conversation.external(() => askAI(prompt)).catch(() => null) ?? 'Ошибка, обратитесь к администрации'
+
+  await ctx.editMessageText(`${periodString}\n${answer}`)
 
   const advice = 'Получить совет'
   const secondKeyboard = new Keyboard().persistent().resized().text(advice).row().text(TO_MAIN_MENU)
