@@ -1,6 +1,7 @@
 import type { Context } from '#root/bot/context.js'
 import type { Conversation } from '@grammyjs/conversations'
 import { MAIN_KEYBOARD, MAIN_MESSAGE, TO_MAIN_MENU } from '#root/bot/conversations/main.js'
+import { removeKeyboard } from '#root/bot/helpers/keyboard.js'
 import { askAI } from '#root/neural-network/index.js'
 import { Keyboard } from 'grammy'
 
@@ -52,13 +53,13 @@ export async function forecastConversation(conversation: Conversation<Context, C
   ${period === special ? 'У меня вопрос: ' : 'Мне нужен '} ${periodString}
   Дай ответ в формате "${session.format}"`
 
-  let msg = await ctx.reply('Ждем ответа от звезд...')
+  await ctx.reply('Ждем ответа от звезд...', { reply_markup: removeKeyboard })
 
   const errorAnswer = 'Ошибка, обратитесь к администрации'
 
   let answer = await conversation.external(() => askAI(prompt)).catch(() => null) ?? errorAnswer
 
-  await ctx.api.editMessageText(msg.chat.id, msg.message_id, `${periodString}\n${answer}`)
+  await ctx.reply(`${periodString}\n${answer}`)
 
   const advice = 'Получить совет'
   const secondKeyboard = new Keyboard().persistent().resized().text(advice).row().text(TO_MAIN_MENU)
@@ -70,11 +71,11 @@ export async function forecastConversation(conversation: Conversation<Context, C
     })
 
     if (select === advice) {
-      msg = await ctx.reply('Ждем ответа от звезд...')
+      await ctx.reply('Ждем ответа от звезд...', { reply_markup: removeKeyboard })
 
       answer = await conversation.external(() => askAI('Детализируй прогноз и дай советы "что делать".', prompt, answer)).catch(() => null) ?? errorAnswer
 
-      ctx.api.editMessageText(msg.chat.id, msg.message_id, answer)
+      await ctx.reply(answer)
     }
   }
 
