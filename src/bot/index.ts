@@ -7,7 +7,7 @@ import { myConversations } from '#root/bot/conversations/index.js'
 import { adminFeature } from '#root/bot/features/admin.js'
 import { conversationFeatures } from '#root/bot/features/index.js'
 import { languageFeature } from '#root/bot/features/language.js'
-import { mainFeature } from '#root/bot/features/main.js'
+import { mainFeature, mainHearsFeature } from '#root/bot/features/main.js'
 import { unhandledFeature } from '#root/bot/features/unhandled.js'
 import { errorHandler } from '#root/bot/handlers/error.js'
 import { i18n, isMultipleLocales } from '#root/bot/i18n.js'
@@ -67,6 +67,7 @@ export async function createBot(token: string, dependencies: Dependencies, botCo
   protectedBot.use(i18n)
   protectedBot.use(conversations())
   protectedBot.use(mainFeature)
+  protectedBot.use(mainHearsFeature)
 
   protectedBot.use(...myConversations)
 

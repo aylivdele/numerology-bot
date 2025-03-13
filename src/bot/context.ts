@@ -24,6 +24,8 @@ export interface SessionData {
   birthday: string
   interests: Interests[]
   format: ForecastFormat
+  lastCompletion?: string
+  isWaiting?: boolean
 }
 
 interface ExtendedContextFlavor {

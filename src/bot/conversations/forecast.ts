@@ -1,7 +1,8 @@
 import type { Context } from '#root/bot/context.js'
 import type { Conversation } from '@grammyjs/conversations'
-import { MAIN_KEYBOARD, MAIN_MESSAGE, TO_MAIN_MENU } from '#root/bot/conversations/main.js'
+import { EXTEND_FORECAST, TO_MAIN_MENU } from '#root/bot/conversations/main.js'
 import { removeKeyboard } from '#root/bot/helpers/keyboard.js'
+import { logger } from '#root/logger.js'
 import { askAI } from '#root/neural-network/index.js'
 import { Keyboard } from 'grammy'
 
@@ -53,31 +54,25 @@ export async function forecastConversation(conversation: Conversation<Context, C
   ${period === special ? 'У меня вопрос: ' : 'Мне нужен '} ${periodString}
   Дай ответ в формате "${session.format}"`
 
-  await ctx.reply('Ждем ответа от звезд...', { reply_markup: removeKeyboard })
+  const waitMsg = await ctx.reply('Ждем ответа от звезд...', { reply_markup: removeKeyboard })
 
   const errorAnswer = 'Ошибка, обратитесь к администрации'
 
-  let answer = await conversation.external(() => askAI(prompt)).catch(() => null) ?? errorAnswer
+  const secondKeyboard = new Keyboard().persistent().resized().text(EXTEND_FORECAST).row().text(TO_MAIN_MENU)
 
-  await ctx.reply(`${periodString}\n${answer}`)
+  conversation.external((ctx) => {
+    ctx.session.isWaiting = true
+    askAI(prompt).catch(() => null).then(async (ans) => {
+      if (ans?.completion_id) {
+        ctx.session.lastCompletion = ans.completion_id
+      }
+      await ctx.api.editMessageText(waitMsg.chat.id, waitMsg.message_id, `${periodString}\n${ans?.content ?? errorAnswer}`)
+        .catch((reason) => {
+          logger.error(reason, 'Could not edit message')
+          return ctx.reply(`${periodString}\n${ans ?? errorAnswer}`)
+        })
 
-  const advice = 'Получить совет'
-  const secondKeyboard = new Keyboard().persistent().resized().text(advice).row().text(TO_MAIN_MENU)
-
-  if (answer !== errorAnswer) {
-    await ctx.reply('Вы также можете получить советы по прогнозу (детализация прогноза + что делать)', { reply_markup: secondKeyboard })
-    const select = await conversation.form.select([advice, TO_MAIN_MENU], {
-      otherwise: ctx => ctx.reply('Пожалуйста, используйте кнопки'),
-    })
-
-    if (select === advice) {
-      await ctx.reply('Ждем ответа от звезд...', { reply_markup: removeKeyboard })
-
-      answer = await conversation.external(() => askAI('Детализируй прогноз и дай советы "что делать".', prompt, answer)).catch(() => null) ?? errorAnswer
-
-      await ctx.reply(answer)
-    }
-  }
-
-  await ctx.reply(MAIN_MESSAGE, { reply_markup: MAIN_KEYBOARD })
+      await ctx.reply('Вы также можете получить советы по прогнозу (детализация прогноза + что делать)', { reply_markup: secondKeyboard })
+    }).finally(() => ctx.session.isWaiting = false)
+  })
 }

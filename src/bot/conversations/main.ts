@@ -10,5 +10,6 @@ export const ANALYZE_CONVERSATION_ID = 'analyze'
 export const FORECAST_CONVERSATION = 'Получить прогноз'
 export const FORECAST_CONVERSATION_ID = 'forecast'
 export const TO_MAIN_MENU = 'Вернуться в меню'
+export const EXTEND_FORECAST = 'Получить совет'
 
 export const MAIN_KEYBOARD = new Keyboard().persistent().resized().text(FORECAST_CONVERSATION).text(ANALYZE_CONVERSATION).text(QUESTION_CONVERSATION).row().text(CHANGE_SETTINGS_CONVERSATION)
