@@ -17,7 +17,6 @@ import { autoChatAction } from '@grammyjs/auto-chat-action'
 import { conversations } from '@grammyjs/conversations'
 import { hydrate } from '@grammyjs/hydrate'
 import { hydrateReply, parseMode } from '@grammyjs/parse-mode'
-import { sequentialize } from '@grammyjs/runner'
 import { PsqlAdapter } from '@grammyjs/storage-psql'
 import { MemorySessionStorage, Bot as TelegramBot } from 'grammy'
 
@@ -52,8 +51,8 @@ export async function createBot(token: string, dependencies: Dependencies, botCo
   // Middlewares
   bot.api.config.use(parseMode('HTML'))
 
-  if (config.isPollingMode)
-    protectedBot.use(sequentialize(getSessionKey))
+  // if (config.isPollingMode)
+  //   protectedBot.use(sequentialize(getSessionKey))
   if (config.isDebug)
     protectedBot.use(updateLogger())
   protectedBot.use(autoChatAction(bot.api))

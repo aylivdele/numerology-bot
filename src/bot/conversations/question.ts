@@ -1,6 +1,7 @@
 import type { Context } from '#root/bot/context.js'
 import type { Conversation } from '@grammyjs/conversations'
 import { MAIN_KEYBOARD, MAIN_MESSAGE } from '#root/bot/conversations/main.js'
+import { splitLongText } from '#root/bot/helpers/conversation.js'
 import { removeKeyboard } from '#root/bot/helpers/keyboard.js'
 import { askAI } from '#root/neural-network/index.js'
 
@@ -20,11 +21,18 @@ export async function questionConversation(conversation: Conversation<Context, C
   У меня вопрос: ${select}.
   Дай ответ в формате "${session.format}"`
 
-  await ctx.reply('Ждем ответа от звезд...', { reply_markup: removeKeyboard })
+  const waitMsg = await ctx.reply('Ждем ответа от звезд...', { reply_markup: removeKeyboard })
 
-  const answer = await conversation.external(() => askAI(prompt)).catch(() => null) ?? 'Ошибка, обратитесь к администрации'
+  const answer = (await conversation.external(async () => await askAI(prompt).then(result => splitLongText(result)).catch(() => null))) ?? ['Ошибка, обратитесь к администрации']
 
-  await ctx.reply(answer)
+  for (let i = 0; i < answer.length; i++) {
+    if (i === 0) {
+      ctx.api.editMessageText(waitMsg.chat.id, waitMsg.message_id, answer[i])
+    }
+    else {
+      await ctx.reply(answer[i])
+    }
+  }
 
   await ctx.reply(MAIN_MESSAGE, { reply_markup: MAIN_KEYBOARD })
 }

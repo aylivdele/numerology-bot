@@ -1,6 +1,7 @@
 import type { Context } from '#root/bot/context.js'
 import type { Conversation } from '@grammyjs/conversations'
 import { MAIN_KEYBOARD, MAIN_MESSAGE, TO_MAIN_MENU } from '#root/bot/conversations/main.js'
+import { splitLongText } from '#root/bot/helpers/conversation.js'
 import { removeKeyboard } from '#root/bot/helpers/keyboard.js'
 import { askAI } from '#root/neural-network/index.js'
 import { Keyboard } from 'grammy'
@@ -53,29 +54,43 @@ export async function forecastConversation(conversation: Conversation<Context, C
   ${period === special ? 'У меня вопрос: ' : 'Мне нужен '} ${periodString}
   Дай ответ в формате "${session.format}"`
 
-  await ctx.reply('Ждем ответа от звезд...', { reply_markup: removeKeyboard })
-
   const errorAnswer = 'Ошибка, обратитесь к администрации'
 
-  let answer = await conversation.external(() => askAI(prompt)).catch(() => null) ?? errorAnswer
+  let waitMsg = await ctx.reply('Ждем ответа от звезд...', { reply_markup: removeKeyboard })
 
-  await ctx.reply(`${periodString}\n${answer}`)
+  let answer = (await conversation.external(async () => await askAI(prompt).then(result => splitLongText(result)).catch(() => null))) ?? [errorAnswer]
+
+  for (let i = 0; i < answer.length; i++) {
+    if (i === 0) {
+      ctx.api.editMessageText(waitMsg.chat.id, waitMsg.message_id, `${periodString}\n${answer[i]}`)
+    }
+    else {
+      await ctx.reply(answer[i])
+    }
+  }
 
   const advice = 'Получить совет'
   const secondKeyboard = new Keyboard().persistent().resized().text(advice).row().text(TO_MAIN_MENU)
 
-  if (answer !== errorAnswer) {
+  if (answer[0] !== errorAnswer) {
     await ctx.reply('Вы также можете получить советы по прогнозу (детализация прогноза + что делать)', { reply_markup: secondKeyboard })
     const select = await conversation.form.select([advice, TO_MAIN_MENU], {
       otherwise: ctx => ctx.reply('Пожалуйста, используйте кнопки'),
     })
 
     if (select === advice) {
-      await ctx.reply('Ждем ответа от звезд...', { reply_markup: removeKeyboard })
+      waitMsg = await ctx.reply('Ждем ответа от звезд...', { reply_markup: removeKeyboard })
 
-      answer = await conversation.external(() => askAI('Детализируй прогноз и дай советы "что делать".', prompt, answer)).catch(() => null) ?? errorAnswer
+      answer = (await conversation.external(async () => await askAI('Детализируй прогноз и дай советы "что делать".', prompt, answer.join('\n\n')).then(result => splitLongText(result)).catch(() => null))) ?? [errorAnswer]
 
-      await ctx.reply(answer)
+      for (let i = 0; i < answer.length; i++) {
+        if (i === 0) {
+          ctx.api.editMessageText(waitMsg.chat.id, waitMsg.message_id, answer[i])
+        }
+        else {
+          await ctx.reply(answer[i])
+        }
+      }
     }
   }
 
