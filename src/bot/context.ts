@@ -16,7 +16,7 @@ export enum Interests {
 export enum ForecastFormat {
   LONG = 'Развернутый текст',
   SHORT = 'Краткие тезисы',
-  SCHEME = 'Графики и схемы',
+  // SCHEME = 'Графики и схемы',
 }
 
 export interface SessionData {

@@ -18,6 +18,7 @@ catch (error) {
 }
 
 export function askAI(userPrompt: string, ...history: string[]): Promise<string | null> {
+  // return Promise.resolve(userPrompt)
   if (!systemPrompt) {
     return Promise.reject(new Error('Could not get system propmt'))
   }

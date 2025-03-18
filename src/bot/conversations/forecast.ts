@@ -1,23 +1,24 @@
 import type { Context } from '#root/bot/context.js'
 import type { Conversation } from '@grammyjs/conversations'
+import type { Context as DefaultContext } from 'grammy'
 import { MAIN_KEYBOARD, MAIN_MESSAGE, TO_MAIN_MENU } from '#root/bot/conversations/main.js'
-import { splitLongText } from '#root/bot/helpers/conversation.js'
-import { removeKeyboard } from '#root/bot/helpers/keyboard.js'
+import { splitLongText, waitForCallbackQuery } from '#root/bot/helpers/conversation.js'
+import { editOrReplyWithInlineKeyboard, removeAndReplyWithInlineKeyboard } from '#root/bot/helpers/keyboard.js'
 import { askAI } from '#root/neural-network/index.js'
-import { Keyboard } from 'grammy'
+import { InlineKeyboard } from 'grammy'
 
-export async function forecastConversation(conversation: Conversation<Context, Context>, ctx: Context) {
-  const week = 'На неделю'
-  const month = 'На месяц'
-  const special = 'Специальный разбор'
+export async function forecastConversation(conversation: Conversation<Context, DefaultContext>, ctx: DefaultContext, message_id?: number) {
+  const week = 'forecast-week'
+  const month = 'forecast-month'
+  const special = 'forecast-special'
 
-  const keyboard = new Keyboard().resized().persistent().text(week).text(month).text(special)
+  const keyboard = new InlineKeyboard().text('На неделю', week).row().text('На месяц', month).row().text('Специальный разбор', special)
 
-  await ctx.reply('Выбери, на какой период тебе нужен прогноз', { reply_markup: keyboard })
+  message_id = (await editOrReplyWithInlineKeyboard(ctx, 'Выбери, на какой период тебе нужен прогноз', keyboard, message_id))?.message_id ?? message_id
 
-  const period = await conversation.form.select([week, month, special], {
-    otherwise: ctx => ctx.reply('Пожалуйста, используйте кнопки'),
-  })
+  const result = await waitForCallbackQuery(conversation, /^forecast-\w+$/, keyboard, message_id)
+  const period = result.data
+  message_id = result.message_id ?? message_id
 
   const formatOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'numeric', day: 'numeric' }
 
@@ -41,9 +42,9 @@ export async function forecastConversation(conversation: Conversation<Context, C
       periodString = `Прогноз на месяц: ${currentDateString} - ${nextDateString}`
       break
     case special:
-      await ctx.reply('Введите конкретный запрос (например, "Какой день выбрать для сделки?")', { reply_markup: { remove_keyboard: true } })
+      message_id = (await removeAndReplyWithInlineKeyboard(ctx, 'Введите конкретный запрос (например, "Какой день выбрать для сделки?")', new InlineKeyboard(), message_id))?.message_id ?? message_id
       periodString = await conversation.form.text({
-        otherwise: ctx => ctx.reply('Извините, на данный момент принимаются только текстовые запросы'),
+        otherwise: ctx => ctx.reply('Извините, на данный момент принимаются только текстовые запросы', { reply_markup: { force_reply: true } }),
       })
   }
 
@@ -56,36 +57,43 @@ export async function forecastConversation(conversation: Conversation<Context, C
 
   const errorAnswer = 'Ошибка, обратитесь к администрации'
 
-  let waitMsg = await ctx.reply('Ждем ответа от звезд...', { reply_markup: removeKeyboard })
+  if (period === special) {
+    message_id = (await ctx.reply('Ждем ответа от звезд...'))?.message_id ?? message_id
+  }
+  else {
+    message_id = (await editOrReplyWithInlineKeyboard(ctx, 'Ждем ответа от звезд...', new InlineKeyboard(), message_id))?.message_id ?? message_id
+  }
 
-  let answer = (await conversation.external(async () => await askAI(prompt).then(result => splitLongText(result)).catch(() => null))) ?? [errorAnswer]
+  let answer = (await conversation.external(async () => await askAI(prompt).then(result => splitLongText(result)).catch(() => null))) ?? ['Ошибка, обратитесь к администрации']
 
   for (let i = 0; i < answer.length; i++) {
-    if (i === 0) {
-      ctx.api.editMessageText(waitMsg.chat.id, waitMsg.message_id, `${periodString}\n${answer[i]}`)
+    if (i === 0 && ctx.chat?.id && message_id) {
+      ctx.api.editMessageText(ctx.chat!.id, message_id, answer[i])
     }
     else {
       await ctx.reply(answer[i])
     }
   }
 
-  const advice = 'Получить совет'
-  const secondKeyboard = new Keyboard().persistent().resized().text(advice).row().text(TO_MAIN_MENU)
-
   if (answer[0] !== errorAnswer) {
-    await ctx.reply('Вы также можете получить советы по прогнозу (детализация прогноза + что делать)', { reply_markup: secondKeyboard })
-    const select = await conversation.form.select([advice, TO_MAIN_MENU], {
-      otherwise: ctx => ctx.reply('Пожалуйста, используйте кнопки'),
-    })
+    const advice = 'advice-advice'
+
+    const secondKeyboard = new InlineKeyboard().text('Получить совет', advice).row().text(TO_MAIN_MENU, 'advice-main-menu')
+
+    message_id = (await ctx.reply('Вы также можете получить советы по прогнозу (детализация прогноза + что делать)', { reply_markup: secondKeyboard }))?.message_id
+
+    const result = await waitForCallbackQuery(conversation, /^advice-\w+$/, secondKeyboard, message_id)
+    const select = result.data
+    message_id = result.message_id ?? message_id
 
     if (select === advice) {
-      waitMsg = await ctx.reply('Ждем ответа от звезд...', { reply_markup: removeKeyboard })
+      message_id = (await editOrReplyWithInlineKeyboard(ctx, 'Ждем ответа от звезд...', new InlineKeyboard(), message_id))?.message_id ?? message_id
 
       answer = (await conversation.external(async () => await askAI('Детализируй прогноз и дай советы "что делать".', prompt, answer.join('\n\n')).then(result => splitLongText(result)).catch(() => null))) ?? [errorAnswer]
 
       for (let i = 0; i < answer.length; i++) {
-        if (i === 0) {
-          ctx.api.editMessageText(waitMsg.chat.id, waitMsg.message_id, answer[i])
+        if (i === 0 && ctx.chat?.id && message_id) {
+          await ctx.api.editMessageText(ctx.chat!.id, message_id, answer[i])
         }
         else {
           await ctx.reply(answer[i])

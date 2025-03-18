@@ -1,7 +1,10 @@
 import type { Context, SessionData } from '#root/bot/context.js'
+import type { MaybeArray } from '@grammyjs/commands/out/utils/array.js'
 import type { Conversation } from '@grammyjs/conversations'
 
+import type { InlineKeyboardMarkup } from '@grammyjs/types'
 import type { Context as DefaultContext } from 'grammy'
+import { removeAndReplyWithInlineKeyboard, removeInlineKeyboard } from '#root/bot/helpers/keyboard.js'
 
 export async function updateSession<SessionField extends keyof SessionData>(conversation: Conversation<Context, DefaultContext>, field: SessionField, value: SessionData[SessionField]) {
   return await conversation.external((ctx) => {
@@ -43,4 +46,23 @@ export function splitLongText(text?: string | null, maxLenght: number = 4000): s
     rest.push(text.substring(index))
   }
   return [firstPart, ...rest]
+}
+
+export interface CallbackQueryWithMessage {
+  data: string
+  message_id?: number
+}
+
+export async function waitForCallbackQuery(conversation: Conversation<Context, DefaultContext>, waitFor: MaybeArray<string | RegExp>, keyboard: InlineKeyboardMarkup, message_id?: number, otherwise?: string): Promise<CallbackQueryWithMessage> {
+  while (true) {
+    const loopCtx = await conversation.wait()
+
+    if (loopCtx.hasCallbackQuery(waitFor)) {
+      if (message_id && loopCtx.callbackQuery.message?.message_id && (loopCtx.callbackQuery.message?.message_id !== message_id)) {
+        await removeInlineKeyboard(loopCtx, loopCtx.callbackQuery.message?.message_id)
+      }
+      return { data: loopCtx.callbackQuery.data, message_id }
+    }
+    message_id = (await removeAndReplyWithInlineKeyboard(loopCtx, otherwise ?? 'Пожалуйста, выберите вариант из меню', keyboard, message_id, true))?.message_id ?? message_id
+  }
 }

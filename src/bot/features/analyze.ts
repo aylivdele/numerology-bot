@@ -1,5 +1,5 @@
 import type { Context } from '#root/bot/context.js'
-import { ANALYZE_CONVERSATION, ANALYZE_CONVERSATION_ID } from '#root/bot/conversations/main.js'
+import { ANALYZE_CONVERSATION_ID } from '#root/bot/conversations/main.js'
 import { removeKeyboard } from '#root/bot/helpers/keyboard.js'
 import { logHandle } from '#root/bot/helpers/logging.js'
 import { checkSession } from '#root/bot/middlewares/session.js'
@@ -9,9 +9,9 @@ const composer = new Composer<Context>()
 
 const feature = composer.chatType('private')
 
-feature.hears(ANALYZE_CONVERSATION, logHandle(`hears-${ANALYZE_CONVERSATION_ID}`), (ctx) => {
+feature.callbackQuery(ANALYZE_CONVERSATION_ID, logHandle(`callback-query-${ANALYZE_CONVERSATION_ID}`), (ctx) => {
   if (checkSession(ctx)) {
-    return ctx.conversation.enter(ANALYZE_CONVERSATION_ID)
+    return ctx.conversation.enter(ANALYZE_CONVERSATION_ID, ctx.callbackQuery.message?.message_id)
   }
   return ctx.reply(ctx.t('unhandled'), { reply_markup: removeKeyboard })
 })

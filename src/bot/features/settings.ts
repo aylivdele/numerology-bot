@@ -1,19 +1,17 @@
 import type { Context } from '#root/bot/context.js'
-import { CHANGE_SETTINGS_CONVERSATION, CHANGE_SETTINGS_CONVERSATION_ID } from '#root/bot/conversations/main.js'
+import { CHANGE_SETTINGS_CONVERSATION_ID } from '#root/bot/conversations/main.js'
 import { removeKeyboard } from '#root/bot/helpers/keyboard.js'
 import { logHandle } from '#root/bot/helpers/logging.js'
 import { checkSession } from '#root/bot/middlewares/session.js'
 import { Composer } from 'grammy'
 
-const composer = new Composer<Context>()
+export const changeSettingsFeature = new Composer<Context>()
 
-const feature = composer.chatType('private')
+const feature = changeSettingsFeature.chatType('private')
 
-feature.hears(CHANGE_SETTINGS_CONVERSATION, logHandle(`hears-${CHANGE_SETTINGS_CONVERSATION_ID}`), (ctx) => {
+feature.callbackQuery(CHANGE_SETTINGS_CONVERSATION_ID, logHandle(`callback-query-${CHANGE_SETTINGS_CONVERSATION_ID}`), (ctx) => {
   if (checkSession(ctx)) {
-    return ctx.conversation.enter(CHANGE_SETTINGS_CONVERSATION_ID)
+    return ctx.conversation.enter(CHANGE_SETTINGS_CONVERSATION_ID, ctx.callbackQuery.message?.message_id)
   }
   return ctx.reply(ctx.t('unhandled'), { reply_markup: removeKeyboard })
 })
-
-export { composer as changeSettingsFeature }

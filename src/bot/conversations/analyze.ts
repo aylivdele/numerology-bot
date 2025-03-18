@@ -1,23 +1,24 @@
 import type { Context } from '#root/bot/context.js'
 import type { Conversation } from '@grammyjs/conversations'
+import type { Context as DefaultContext } from 'grammy'
 import { MAIN_KEYBOARD, MAIN_MESSAGE } from '#root/bot/conversations/main.js'
-import { splitLongText } from '#root/bot/helpers/conversation.js'
-import { removeKeyboard } from '#root/bot/helpers/keyboard.js'
+import { splitLongText, waitForCallbackQuery } from '#root/bot/helpers/conversation.js'
+import { editOrReplyWithInlineKeyboard } from '#root/bot/helpers/keyboard.js'
 import { askAI } from '#root/neural-network/index.js'
-import { Keyboard } from 'grammy'
+import { InlineKeyboard } from 'grammy'
 
-export async function analyzeConversation(conversation: Conversation<Context, Context>, ctx: Context) {
-  const strongs = 'Сильные стороны и таланты'
-  const path = 'Кармический путь'
-  const growth = 'Лучшие периоды для роста'
+export async function analyzeConversation(conversation: Conversation<Context, DefaultContext>, ctx: DefaultContext, message_id?: number) {
+  const strongs = 'analyze-strongs'
+  const path = 'analyze-path'
+  const growth = 'analyze-growth'
 
-  const keyboard = new Keyboard().resized().persistent().text(strongs).text(path).text(growth)
+  const keyboard = new InlineKeyboard().text('Сильные стороны и таланты', strongs).row().text('Кармический путь', path).row().text('Лучшие периоды для роста', growth)
 
-  await ctx.reply('Я могу сделать персональный разбор твоей личности и сильных сторон', { reply_markup: keyboard })
+  message_id = (await editOrReplyWithInlineKeyboard(ctx, 'Я могу сделать персональный разбор твоей личности и сильных сторон', keyboard, message_id))?.message_id ?? message_id
 
-  const select = await conversation.form.select([strongs, path, growth], {
-    otherwise: ctx => ctx.reply('Пожалуйста, используйте кнопки'),
-  })
+  const result = await waitForCallbackQuery(conversation, /^analyze-\w+$/, keyboard, message_id)
+  const select = result.data
+  message_id = result.message_id ?? message_id
 
   const session = await conversation.external(ctx => ctx.session)
 
@@ -40,13 +41,13 @@ export async function analyzeConversation(conversation: Conversation<Context, Co
   ${question}
   Дай ответ в формате "${session.format}"`
 
-  const waitMsg = await ctx.reply('Ждем ответа от звезд...', { reply_markup: removeKeyboard })
+  message_id = (await editOrReplyWithInlineKeyboard(ctx, 'Ждем ответа от звезд...', new InlineKeyboard(), message_id))?.message_id ?? message_id
 
   const answer = (await conversation.external(async () => await askAI(prompt).then(result => splitLongText(result)).catch(() => null))) ?? ['Ошибка, обратитесь к администрации']
 
   for (let i = 0; i < answer.length; i++) {
-    if (i === 0) {
-      ctx.api.editMessageText(waitMsg.chat.id, waitMsg.message_id, answer[i])
+    if (i === 0 && ctx.chat?.id && message_id) {
+      ctx.api.editMessageText(ctx.chat!.id, message_id, answer[i])
     }
     else {
       await ctx.reply(answer[i])
