@@ -66,3 +66,30 @@ export async function waitForCallbackQuery(conversation: Conversation<Context, D
     message_id = (await removeAndReplyWithInlineKeyboard(loopCtx, otherwise ?? 'Пожалуйста, выберите вариант из меню', keyboard, message_id, true))?.message_id ?? message_id
   }
 }
+
+// "sticker": {
+//           "width": 512,
+//           "height": 512,
+//           "emoji": "⏳",
+//           "set_name": "Cat2O",
+//           "is_animated": true,
+//           "is_video": false,
+//           "type": "regular",
+//           "thumbnail": {
+//             "file_id": "AAMCAgADGQEAAgT_Z9rD27HR3R3ehCn6sMq9VJhUFNgAAiMAAygPahQnUSXnjCCkBgEAB20AAzYE",
+//             "file_unique_id": "AQADIwADKA9qFHI",
+//             "file_size": 6112,
+//             "width": 128,
+//             "height": 128
+//           },
+//           "thumb": {
+//             "file_id": "AAMCAgADGQEAAgT_Z9rD27HR3R3ehCn6sMq9VJhUFNgAAiMAAygPahQnUSXnjCCkBgEAB20AAzYE",
+//             "file_unique_id": "AQADIwADKA9qFHI",
+//             "file_size": 6112,
+//             "width": 128,
+//             "height": 128
+//           },
+//           "file_id": "CAACAgIAAxkBAAIE_2faw9ux0d0d3oQp-rDKvVSYVBTYAAIjAAMoD2oUJ1El54wgpAY2BA",
+//           "file_unique_id": "AgADIwADKA9qFA",
+//           "file_size": 47982
+//         }
