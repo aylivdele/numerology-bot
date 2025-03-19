@@ -91,6 +91,7 @@ export async function settingsConversation(conversation: Conversation<Context, D
 
   switch (nextStep) {
     case toForecasts:
+      await ctx.api.setMyCommands([{ command: 'main', description: 'Главное меню' }, { command: 'start', description: 'Стартовое меню' }], { scope: { type: 'chat', chat_id: ctx.chat!.id } })
       return await ctx.api.editMessageText(ctx.chat!.id, message_id, MAIN_MESSAGE, { reply_markup: MAIN_KEYBOARD })
     case toSettings:
       return await settingsConversation(conversation, ctx, message_id)
@@ -104,7 +105,7 @@ export async function interestsSettingsConversation(conversation: Conversation<C
 
   for (const entry of Object.entries(Interests).filter(([key]) => Number.isNaN(Number(key)))) {
     const value = entry[1]
-    menu = menu.text(() => `${selectedInterests.includes(value) ? '✅' : '❌'} ${value}`, async (ctx) => {
+    menu = menu.text(() => `${selectedInterests.includes(value) ? '✅' : ''} ${value}`, async (ctx) => {
       const index = selectedInterests.indexOf(value)
       if (index > -1) {
         selectedInterests.splice(index, 1)
