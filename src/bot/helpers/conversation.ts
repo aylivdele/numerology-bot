@@ -74,7 +74,7 @@ export const EYE_STICKER = 'CAACAgEAAxkBAAIFLGfcSSFn7dE97-15Lhx2gO_Lg8x6AAIlAwAC
 const randomStickers = [MOON_STICKER, STAR_STICKER]
 
 export function sendRandomSticker(ctx: DefaultContext, seed: number): Promise<Message> {
-  return ctx.replyWithSticker(randomStickers[seed % randomStickers.length])
+  return ctx.replyWithSticker(randomStickers[Math.floor(seed * randomStickers.length)])
 }
 // "sticker": {
 //           "width": 512,
