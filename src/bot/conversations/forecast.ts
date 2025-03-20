@@ -2,7 +2,7 @@ import type { Context } from '#root/bot/context.js'
 import type { Conversation } from '@grammyjs/conversations'
 import type { Context as DefaultContext } from 'grammy'
 import { MAIN_KEYBOARD, MAIN_MESSAGE, TO_MAIN_MENU } from '#root/bot/conversations/main.js'
-import { splitLongText, waitForCallbackQuery } from '#root/bot/helpers/conversation.js'
+import { MOON_STICKER, splitLongText, waitForCallbackQuery } from '#root/bot/helpers/conversation.js'
 import { editOrReplyWithInlineKeyboard, removeAndReplyWithInlineKeyboard } from '#root/bot/helpers/keyboard.js'
 import { askAI } from '#root/neural-network/index.js'
 import { InlineKeyboard } from 'grammy'
@@ -63,7 +63,7 @@ export async function forecastConversation(conversation: Conversation<Context, D
   else {
     message_id = (await editOrReplyWithInlineKeyboard(ctx, 'Ждем ответа от звезд...', new InlineKeyboard(), message_id))?.message_id ?? message_id
   }
-  let stickerMessage = await ctx.reply('🌕')
+  const stickerMessage = await ctx.replyWithSticker(MOON_STICKER)
 
   let answer = (await conversation.external(async () => await askAI(prompt).then(result => splitLongText(result)).catch(() => null))) ?? ['Ошибка, обратитесь к администрации']
 
@@ -91,7 +91,7 @@ export async function forecastConversation(conversation: Conversation<Context, D
 
     if (select === advice) {
       message_id = (await editOrReplyWithInlineKeyboard(ctx, 'Ждем ответа от звезд...', new InlineKeyboard(), message_id))?.message_id ?? message_id
-      stickerMessage = await ctx.reply('🌕')
+      const stickerMessage = await ctx.replyWithSticker(MOON_STICKER)
       answer = (await conversation.external(async () => await askAI('Детализируй прогноз и дай советы "что делать".', prompt, answer.join('\n\n')).then(result => splitLongText(result)).catch(() => null))) ?? [errorAnswer]
 
       await ctx.api.deleteMessage(stickerMessage.chat.id, stickerMessage.message_id)

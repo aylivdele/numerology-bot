@@ -67,6 +67,8 @@ export async function waitForCallbackQuery(conversation: Conversation<Context, D
   }
 }
 
+export const MOON_STICKER = 'CAACAgEAAxkBAAIFIWfcRxyL42fa4HP0Bq22t5UVdWwHAAKtCAAC43gEAAGElvTjoS7KWjYE'
+
 // "sticker": {
 //           "width": 512,
 //           "height": 512,

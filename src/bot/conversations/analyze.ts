@@ -2,7 +2,7 @@ import type { Context } from '#root/bot/context.js'
 import type { Conversation } from '@grammyjs/conversations'
 import type { Context as DefaultContext } from 'grammy'
 import { MAIN_KEYBOARD, MAIN_MESSAGE } from '#root/bot/conversations/main.js'
-import { splitLongText, waitForCallbackQuery } from '#root/bot/helpers/conversation.js'
+import { MOON_STICKER, splitLongText, waitForCallbackQuery } from '#root/bot/helpers/conversation.js'
 import { editOrReplyWithInlineKeyboard } from '#root/bot/helpers/keyboard.js'
 import { askAI } from '#root/neural-network/index.js'
 import { InlineKeyboard } from 'grammy'
@@ -42,7 +42,7 @@ export async function analyzeConversation(conversation: Conversation<Context, De
   Дай ответ в формате "${session.format}"`
 
   message_id = (await editOrReplyWithInlineKeyboard(ctx, 'Ждем ответа от звезд...', new InlineKeyboard(), message_id))?.message_id ?? message_id
-  const stickerMessage = await ctx.reply('🌕')
+  const stickerMessage = await ctx.replyWithSticker(MOON_STICKER)
 
   const answer = (await conversation.external(async () => await askAI(prompt).then(result => splitLongText(result)).catch(() => null))) ?? ['Ошибка, обратитесь к администрации']
 

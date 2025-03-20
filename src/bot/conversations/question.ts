@@ -1,7 +1,7 @@
 import type { Context } from '#root/bot/context.js'
 import type { Conversation } from '@grammyjs/conversations'
 import { MAIN_KEYBOARD, MAIN_MESSAGE } from '#root/bot/conversations/main.js'
-import { splitLongText } from '#root/bot/helpers/conversation.js'
+import { MOON_STICKER, splitLongText } from '#root/bot/helpers/conversation.js'
 import { removeAndReplyWithInlineKeyboard } from '#root/bot/helpers/keyboard.js'
 import { askAI } from '#root/neural-network/index.js'
 import { InlineKeyboard } from 'grammy'
@@ -23,7 +23,7 @@ export async function questionConversation(conversation: Conversation<Context, C
   Дай ответ в формате "${session.format}"`
 
   const waitMsg = await ctx.reply('Ждем ответа от звезд...')
-  const stickerMessage = await ctx.reply('🌕')
+  const stickerMessage = await ctx.replyWithSticker(MOON_STICKER)
   const answer = (await conversation.external(async () => await askAI(prompt).then(result => splitLongText(result)).catch(() => null))) ?? ['Ошибка, обратитесь к администрации']
   await ctx.api.deleteMessage(stickerMessage.chat.id, stickerMessage.message_id)
 
