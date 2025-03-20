@@ -36,3 +36,12 @@ export function editOrReplyWithInlineKeyboard(ctx: DefaultContext, text: string,
   }
   return removeInlineKeyboard(ctx, message_id).then(() => ctx.reply(text, { reply_markup: keyboard }))
 }
+
+export async function deleteAndReplyWithInlineKeyboard(ctx: DefaultContext, text: string, keyboard?: InlineKeyboardMarkup, message_id?: number[]): Promise<undefined | Message.TextMessage> {
+  if (ctx.chat?.id && message_id) {
+    for (const id of message_id) {
+      await ctx.api.deleteMessage(ctx.chat.id, id)
+    }
+  }
+  return await ctx.reply(text, { reply_markup: keyboard })
+}
