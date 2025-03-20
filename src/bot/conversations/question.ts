@@ -1,12 +1,13 @@
 import type { Context } from '#root/bot/context.js'
 import type { Conversation } from '@grammyjs/conversations'
+import type { Context as DefaultContext } from 'grammy'
 import { MAIN_KEYBOARD, MAIN_MESSAGE } from '#root/bot/conversations/main.js'
-import { MOON_STICKER, splitLongText } from '#root/bot/helpers/conversation.js'
+import { sendRandomSticker, splitLongText } from '#root/bot/helpers/conversation.js'
 import { removeAndReplyWithInlineKeyboard } from '#root/bot/helpers/keyboard.js'
 import { askAI } from '#root/neural-network/index.js'
 import { InlineKeyboard } from 'grammy'
 
-export async function questionConversation(conversation: Conversation<Context, Context>, ctx: Context, message_id?: number) {
+export async function questionConversation(conversation: Conversation<Context, DefaultContext>, ctx: DefaultContext, message_id?: number) {
   message_id = (await removeAndReplyWithInlineKeyboard(ctx, `Сформулируйте свой вопрос. Например:
     "Когда лучше начинать новый проект?"
     "Стоит ли менять работу в этом месяце?"`, new InlineKeyboard(), message_id))?.message_id ?? message_id
@@ -23,7 +24,7 @@ export async function questionConversation(conversation: Conversation<Context, C
   Дай ответ в формате "${session.format}"`
 
   const waitMsg = await ctx.reply('Ждем ответа от звезд...')
-  const stickerMessage = await ctx.replyWithSticker(MOON_STICKER)
+  const stickerMessage = await sendRandomSticker(ctx, await conversation.random())
   const answer = (await conversation.external(async () => await askAI(prompt).then(result => splitLongText(result)).catch(() => null))) ?? ['Ошибка, обратитесь к администрации']
   await ctx.api.deleteMessage(stickerMessage.chat.id, stickerMessage.message_id)
 

@@ -2,7 +2,7 @@ import type { Context, SessionData } from '#root/bot/context.js'
 import type { MaybeArray } from '@grammyjs/commands/out/utils/array.js'
 import type { Conversation } from '@grammyjs/conversations'
 
-import type { InlineKeyboardMarkup } from '@grammyjs/types'
+import type { InlineKeyboardMarkup, Message } from '@grammyjs/types'
 import type { Context as DefaultContext } from 'grammy'
 import { removeAndReplyWithInlineKeyboard, removeInlineKeyboard } from '#root/bot/helpers/keyboard.js'
 
@@ -68,7 +68,14 @@ export async function waitForCallbackQuery(conversation: Conversation<Context, D
 }
 
 export const MOON_STICKER = 'CAACAgEAAxkBAAIFIWfcRxyL42fa4HP0Bq22t5UVdWwHAAKtCAAC43gEAAGElvTjoS7KWjYE'
+export const STAR_STICKER = 'CAACAgEAAxkBAAIFKmfcSOGmLyvHVl8gG6Na1sAQ9tOwAAI2AwACE6IYRClEzyvOgctkNgQ'
+export const EYE_STICKER = 'CAACAgEAAxkBAAIFLGfcSSFn7dE97-15Lhx2gO_Lg8x6AAIlAwACj-vZRmFFqOOdC6ugNgQ'
 
+const randomStickers = [MOON_STICKER, STAR_STICKER]
+
+export function sendRandomSticker(ctx: DefaultContext, seed: number): Promise<Message> {
+  return ctx.replyWithSticker(randomStickers[seed % randomStickers.length])
+}
 // "sticker": {
 //           "width": 512,
 //           "height": 512,
