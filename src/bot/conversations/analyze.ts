@@ -42,8 +42,11 @@ export async function analyzeConversation(conversation: Conversation<Context, De
   Дай ответ в формате "${session.format}"`
 
   message_id = (await editOrReplyWithInlineKeyboard(ctx, 'Ждем ответа от звезд...', new InlineKeyboard(), message_id))?.message_id ?? message_id
+  const stickerMessage = await ctx.reply('🌕')
 
   const answer = (await conversation.external(async () => await askAI(prompt).then(result => splitLongText(result)).catch(() => null))) ?? ['Ошибка, обратитесь к администрации']
+
+  await ctx.api.deleteMessage(stickerMessage.chat.id, stickerMessage.message_id)
 
   for (let i = 0; i < answer.length; i++) {
     if (i === 0 && ctx.chat?.id && message_id) {
