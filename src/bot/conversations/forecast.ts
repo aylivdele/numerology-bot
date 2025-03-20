@@ -63,8 +63,11 @@ export async function forecastConversation(conversation: Conversation<Context, D
   else {
     message_id = (await editOrReplyWithInlineKeyboard(ctx, 'Ждем ответа от звезд...', new InlineKeyboard(), message_id))?.message_id ?? message_id
   }
+  let stickerMessage = await ctx.reply('🌕')
 
   let answer = (await conversation.external(async () => await askAI(prompt).then(result => splitLongText(result)).catch(() => null))) ?? ['Ошибка, обратитесь к администрации']
+
+  await ctx.api.deleteMessage(stickerMessage.chat.id, stickerMessage.message_id)
 
   for (let i = 0; i < answer.length; i++) {
     if (i === 0 && ctx.chat?.id && message_id) {
@@ -88,9 +91,10 @@ export async function forecastConversation(conversation: Conversation<Context, D
 
     if (select === advice) {
       message_id = (await editOrReplyWithInlineKeyboard(ctx, 'Ждем ответа от звезд...', new InlineKeyboard(), message_id))?.message_id ?? message_id
-
+      stickerMessage = await ctx.reply('🌕')
       answer = (await conversation.external(async () => await askAI('Детализируй прогноз и дай советы "что делать".', prompt, answer.join('\n\n')).then(result => splitLongText(result)).catch(() => null))) ?? [errorAnswer]
 
+      await ctx.api.deleteMessage(stickerMessage.chat.id, stickerMessage.message_id)
       for (let i = 0; i < answer.length; i++) {
         if (i === 0 && ctx.chat?.id && message_id) {
           await ctx.api.editMessageText(ctx.chat!.id, message_id, answer[i])

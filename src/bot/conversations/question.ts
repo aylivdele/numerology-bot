@@ -23,8 +23,9 @@ export async function questionConversation(conversation: Conversation<Context, C
   Дай ответ в формате "${session.format}"`
 
   const waitMsg = await ctx.reply('Ждем ответа от звезд...')
-
+  const stickerMessage = await ctx.reply('🌕')
   const answer = (await conversation.external(async () => await askAI(prompt).then(result => splitLongText(result)).catch(() => null))) ?? ['Ошибка, обратитесь к администрации']
+  await ctx.api.deleteMessage(stickerMessage.chat.id, stickerMessage.message_id)
 
   for (let i = 0; i < answer.length; i++) {
     if (i === 0) {
