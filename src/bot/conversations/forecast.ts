@@ -4,6 +4,7 @@ import type { Context as DefaultContext } from 'grammy'
 import { MAIN_KEYBOARD, MAIN_MESSAGE, TO_MAIN_MENU } from '#root/bot/conversations/main.js'
 import { sendRandomSticker, splitLongText, waitForCallbackQuery } from '#root/bot/helpers/conversation.js'
 import { editOrReplyWithInlineKeyboard, removeAndReplyWithInlineKeyboard } from '#root/bot/helpers/keyboard.js'
+import { getAdvicePropmt as getAdvicePrompt, getForecastPrompt, getForecastSystemPrompt } from '#root/bot/prompts/forecastPrompts.js'
 import { askAI } from '#root/neural-network/index.js'
 import { InlineKeyboard } from 'grammy'
 
@@ -27,19 +28,19 @@ export async function forecastConversation(conversation: Conversation<Context, D
 
   let nextDate
   let nextDateString
-  let periodString
+  let periodString = ''
   switch (period) {
     case week:
       nextDate = new Date(currentDate)
       nextDate.setDate(currentDate.getDate() + 7)
       nextDateString = nextDate.toLocaleDateString('ru-RU', formatOptions)
-      periodString = `Прогноз на неделю: ${currentDateString} - ${nextDateString}`
+      periodString = `неделю: ${currentDateString} - ${nextDateString}`
       break
     case month:
       nextDate = new Date(currentDate)
       nextDate.setMonth(currentDate.getMonth() + 1)
       nextDateString = nextDate.toLocaleDateString('ru-RU', formatOptions)
-      periodString = `Прогноз на месяц: ${currentDateString} - ${nextDateString}`
+      periodString = `месяц: ${currentDateString} - ${nextDateString}`
       break
     case special:
       message_id = (await removeAndReplyWithInlineKeyboard(ctx, 'Введите конкретный запрос (например, "Какой день выбрать для сделки?")', new InlineKeyboard(), message_id))?.message_id ?? message_id
@@ -50,10 +51,7 @@ export async function forecastConversation(conversation: Conversation<Context, D
 
   const session = await conversation.external(ctx => ctx.session)
 
-  const prompt = `Привет! Меня зовут ${session.name}, дата моего рождения: ${session.birthday}.
-  Интересующие меня темы: ${session.interests.join(', ')}.
-  ${period === special ? 'У меня вопрос: ' : 'Мне нужен '} ${periodString}
-  Дай ответ в формате "${session.format}"`
+  const prompt = getForecastPrompt(session, periodString, period === special)
 
   const errorAnswer = 'Ошибка, обратитесь к администрации'
 
@@ -65,7 +63,7 @@ export async function forecastConversation(conversation: Conversation<Context, D
   }
   const stickerMessage = await sendRandomSticker(ctx, await conversation.random())
 
-  let answer = (await conversation.external(async () => await askAI(prompt).then(result => splitLongText(result)).catch(() => null))) ?? ['Ошибка, обратитесь к администрации']
+  let answer = (await conversation.external(async () => await askAI(getForecastSystemPrompt(), prompt).then(result => splitLongText(result)).catch(() => null))) ?? ['Ошибка, обратитесь к администрации']
 
   await ctx.api.deleteMessage(stickerMessage.chat.id, stickerMessage.message_id)
 
@@ -92,7 +90,7 @@ export async function forecastConversation(conversation: Conversation<Context, D
     if (select === advice) {
       message_id = (await editOrReplyWithInlineKeyboard(ctx, 'Ждем ответа от звезд...', new InlineKeyboard(), message_id))?.message_id ?? message_id
       const stickerMessage = await sendRandomSticker(ctx, await conversation.random())
-      answer = (await conversation.external(async () => await askAI('Детализируй прогноз и дай советы "что делать".', prompt, answer.join('\n\n')).then(result => splitLongText(result)).catch(() => null))) ?? [errorAnswer]
+      answer = (await conversation.external(async () => await askAI(getForecastSystemPrompt(), getAdvicePrompt(), prompt, answer.join('\n\n')).then(result => splitLongText(result)).catch(() => null))) ?? [errorAnswer]
 
       await ctx.api.deleteMessage(stickerMessage.chat.id, stickerMessage.message_id)
       for (let i = 0; i < answer.length; i++) {

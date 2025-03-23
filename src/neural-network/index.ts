@@ -1,5 +1,4 @@
 import type { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
-import fs from 'node:fs'
 import { config } from '#root/config.js'
 import { logger } from '#root/logger.js'
 import OpenAI from 'openai'
@@ -8,20 +7,7 @@ const openai = new OpenAI({
   apiKey: config.networkToken,
 })
 
-let systemPrompt: string | undefined
-
-try {
-  systemPrompt = fs.readFileSync('prompts/system_prompt.txt').toString()
-}
-catch (error) {
-  logger.error(error, 'Could not open system prompt file')
-}
-
-export function askAI(userPrompt: string, ...history: string[]): Promise<string | null> {
-  // return Promise.resolve(userPrompt)
-  if (!systemPrompt) {
-    return Promise.reject(new Error('Could not get system propmt'))
-  }
+export function askAI(systemPrompt: string, userPrompt: string, ...history: string[]): Promise<string | null> {
   const messages: ChatCompletionMessageParam[] = [{ role: 'developer', content: systemPrompt }]
   if (history && history.length) {
     messages.push(...(history?.map((content, ind) => ({ role: (ind % 2 === 0 ? 'user' : 'assistant'), content })) as ChatCompletionMessageParam[]))

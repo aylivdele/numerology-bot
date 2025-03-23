@@ -4,6 +4,7 @@ import type { Context as DefaultContext } from 'grammy'
 import { MAIN_KEYBOARD, MAIN_MESSAGE } from '#root/bot/conversations/main.js'
 import { sendRandomSticker, splitLongText, waitForCallbackQuery } from '#root/bot/helpers/conversation.js'
 import { editOrReplyWithInlineKeyboard } from '#root/bot/helpers/keyboard.js'
+import { getAnalyzePrompt, getAnalyzeSystemPrompt } from '#root/bot/prompts/analyzePrompt.js'
 import { askAI } from '#root/neural-network/index.js'
 import { InlineKeyboard } from 'grammy'
 
@@ -22,35 +23,36 @@ export async function analyzeConversation(conversation: Conversation<Context, De
 
   const session = await conversation.external(ctx => ctx.session)
 
-  let question = ''
+  let question = 0
 
   switch (select) {
     case strongs:
-      question = 'Расскажи про мои сильные стороны и таланты'
+      question = 1
       break
     case path:
-      question = 'Расскажи про мой кармический путь'
+      question = 2
       break
     case growth:
-      question = 'Расскажи про мои лучшие периоды для роста'
+      question = 3
       break
   }
 
-  const prompt = `Привет! Меня зовут ${session.name}, дата моего рождения: ${session.birthday}.
-  Интересующие меня темы: ${session.interests.join(', ')}.
-  ${question}
-  Дай ответ в формате "${session.format}"`
+  const prompt = getAnalyzePrompt(session, question)
 
   message_id = (await editOrReplyWithInlineKeyboard(ctx, 'Ждем ответа от звезд...', new InlineKeyboard(), message_id))?.message_id ?? message_id
   const stickerMessage = await sendRandomSticker(ctx, await conversation.random())
 
-  const answer = (await conversation.external(async () => await askAI(prompt).then(result => splitLongText(result)).catch(() => null))) ?? ['Ошибка, обратитесь к администрации']
+  const answer = (await conversation.external(async () => await askAI(getAnalyzeSystemPrompt(), prompt).then(result => splitLongText(result)).catch(() => null))) ?? ['Ошибка, обратитесь к администрации']
 
   await ctx.api.deleteMessage(stickerMessage.chat.id, stickerMessage.message_id)
-  await ctx.api.deleteMessage(stickerMessage.chat.id, message_id!)
 
   for (let i = 0; i < answer.length; i++) {
-    await ctx.reply(answer[i])
+    if (i === 0 && ctx.chat?.id && message_id) {
+      ctx.api.editMessageText(ctx.chat!.id, message_id, answer[i])
+    }
+    else {
+      await ctx.reply(answer[i])
+    }
   }
 
   await ctx.reply(MAIN_MESSAGE, { reply_markup: MAIN_KEYBOARD })
