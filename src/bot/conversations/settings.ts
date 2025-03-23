@@ -13,7 +13,7 @@ export async function changeSettingsConversation(conversation: Conversation<Cont
   const interests = 'change-interests'
   const format = 'change-format'
   const cancel = 'change-cancel'
-  const keyboard = new InlineKeyboard().text('Изменить интересующие темы', interests).text('Выбрать формат прогнозов', format).row().text('Отмена', cancel)
+  const keyboard = new InlineKeyboard().text('Изменить интересующие темы', interests).row().text('Выбрать формат прогнозов', format).row().text('Отмена', cancel)
 
   message_id = (await editOrReplyWithInlineKeyboard(ctx, 'Что вы хотите изменить?', keyboard, message_id))?.message_id ?? message_id
 
