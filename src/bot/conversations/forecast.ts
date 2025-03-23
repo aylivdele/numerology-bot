@@ -79,7 +79,7 @@ export async function forecastConversation(conversation: Conversation<Context, D
   if (answer[0] !== errorAnswer) {
     const advice = 'advice-advice'
 
-    const secondKeyboard = new InlineKeyboard().text('Получить совет', advice).row().text(TO_MAIN_MENU, 'advice-main-menu')
+    const secondKeyboard = new InlineKeyboard().text('Получить совет', advice).row().text(TO_MAIN_MENU, 'advice-mainmenu')
 
     message_id = (await ctx.reply('Вы также можете получить советы по прогнозу (детализация прогноза + что делать)', { reply_markup: secondKeyboard }))?.message_id
 
