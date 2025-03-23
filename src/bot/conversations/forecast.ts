@@ -102,6 +102,9 @@ export async function forecastConversation(conversation: Conversation<Context, D
         }
       }
     }
+    else {
+      return await editOrReplyWithInlineKeyboard(ctx, MAIN_MESSAGE, MAIN_KEYBOARD, message_id)
+    }
   }
 
   await ctx.reply(MAIN_MESSAGE, { reply_markup: MAIN_KEYBOARD })
