@@ -16,4 +16,4 @@ feature.callbackQuery(PSYCHO_CONVERSATION_ID, logHandle(`callback-query-${PSYCHO
   return ctx.reply(ctx.t('unhandled'), { reply_markup: removeKeyboard })
 })
 
-export { composer as analyzeFeature }
+export { composer as psychoFeature }
