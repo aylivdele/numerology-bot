@@ -38,20 +38,20 @@ export async function psychoConversation(conversation: Conversation<Context, Def
     userAnswers.push({ question, answer: userAnswer })
   }
 
-  const answersMessage = userAnswers.reduce((acc, ans, ind) => `${acc}${ind + 1}. ${ans}\n`, '')
+  const userAnswersMessage = userAnswers.reduce((acc, ans, ind) => `${acc}${ind + 1}. ${ans.answer}\n`, '')
 
   await conversation.external((ectx) => {
     ectx.session = {
       ...ectx.session,
       psychoQuestions: rawQuestionsAnswer,
-      psychoAnswers: answersMessage,
+      psychoAnswers: userAnswersMessage,
     }
   })
 
   message_id = (await ctx.reply('Ждем ответа от звезд...'))?.message_id
   const stickerMessage = await sendClockSticker(ctx)
 
-  const aiAnswer = (await conversation.external(async () => await askAI(getFirstPrompt(), answersMessage, problem, rawQuestionsAnswer).then(result => result ? JSON.parse(result) : null).catch(() => null))) as PsychoAnswer | null
+  const aiAnswer = (await conversation.external(async () => await askAI(getFirstPrompt(), userAnswersMessage, problem, rawQuestionsAnswer).then(result => result ? JSON.parse(result) : null).catch(() => null))) as PsychoAnswer | null
 
   // logger.info('Parsed answer: ' + JSON.stringify(aiAnswer))
 
