@@ -7,27 +7,10 @@ import type { RunnerHandle } from '@grammyjs/runner'
 import process from 'node:process'
 import { createBot } from '#root/bot/index.js'
 import { config } from '#root/config.js'
+import { getDbClient } from '#root/db/index.js'
 import { logger } from '#root/logger.js'
 import { createServer, createServerManager } from '#root/server/index.js'
 import { run } from '@grammyjs/runner'
-import pg from 'pg'
-
-async function createPostgreClient(config: Config) {
-  if (config.databaseString) {
-    try {
-      const client = new pg.Client({
-        connectionString: config.databaseString,
-      })
-      await client.connect()
-      logger.info('Successfully connected to database')
-      return client
-    }
-    catch (error) {
-      logger.error(error, 'Error connection to postgres')
-    }
-  }
-  return undefined
-}
 
 async function startServer(bot: Bot, config: Config) {
   const server = createServer({
@@ -58,7 +41,7 @@ async function startPolling(config: PollingConfig) {
   const bot = await createBot(config.botToken, {
     config,
     logger,
-  }, undefined, await createPostgreClient(config))
+  }, undefined, getDbClient())
   let runner: undefined | RunnerHandle
 
   // graceful shutdown
@@ -93,7 +76,7 @@ async function startWebhook(config: WebhookConfig) {
   const bot = await createBot(config.botToken, {
     config,
     logger,
-  }, undefined, await createPostgreClient(config))
+  }, undefined, getDbClient())
 
   await bot.init()
 

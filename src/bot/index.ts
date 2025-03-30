@@ -1,4 +1,4 @@
-import type { Context, SessionData } from '#root/bot/context.js'
+import type { Context, ConversationContext, SessionData } from '#root/bot/context.js'
 import type { Config } from '#root/config.js'
 import type { Logger } from '#root/logger.js'
 import type { BotConfig } from 'grammy'
@@ -6,11 +6,10 @@ import type pg from 'pg'
 import { myConversations } from '#root/bot/conversations/index.js'
 import { adminFeature } from '#root/bot/features/admin.js'
 import { conversationFeatures } from '#root/bot/features/index.js'
-import { languageFeature } from '#root/bot/features/language.js'
 import { mainFeature } from '#root/bot/features/main.js'
 import { unhandledFeature } from '#root/bot/features/unhandled.js'
 import { errorHandler } from '#root/bot/handlers/error.js'
-import { i18n, isMultipleLocales } from '#root/bot/i18n.js'
+import { localize } from '#root/bot/i18n.js'
 import { session } from '#root/bot/middlewares/session.js'
 import { updateLogger } from '#root/bot/middlewares/update-logger.js'
 import { autoChatAction } from '@grammyjs/auto-chat-action'
@@ -63,8 +62,10 @@ export async function createBot(token: string, dependencies: Dependencies, botCo
     // @ts-expect-error not possible to set generic type of PsqlAdapter
     storage: dbClient ? (await PsqlAdapter.create({ client: dbClient, tableName: 'session' })) : new MemorySessionStorage<SessionData>(),
   }))
-  protectedBot.use(i18n)
-  protectedBot.use(conversations())
+  protectedBot.use(localize)
+  protectedBot.use(conversations<Context, ConversationContext>({
+    plugins: [autoChatAction(bot.api), hydrateReply, hydrate()],
+  }))
   protectedBot.use(mainFeature)
 
   protectedBot.use(...myConversations)
@@ -72,8 +73,8 @@ export async function createBot(token: string, dependencies: Dependencies, botCo
   // Handlers
   protectedBot.use(...conversationFeatures)
   protectedBot.use(adminFeature)
-  if (isMultipleLocales)
-    protectedBot.use(languageFeature)
+  // if (isMultipleLocales)
+  //   protectedBot.use(languageFeature)
 
   // must be the last handler
   protectedBot.use(unhandledFeature)

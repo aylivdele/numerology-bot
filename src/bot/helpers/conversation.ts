@@ -14,9 +14,9 @@ export async function updateSession<SessionField extends keyof SessionData>(conv
   })
 }
 
-export function splitLongText(text?: string | null, maxLenght: number = 4000): string[] | undefined {
+export function splitLongText(text?: string | null, maxLenght: number = 4000): string[] {
   if (!text) {
-    return undefined
+    return []
   }
   if (text.length < maxLenght) {
     return [text]

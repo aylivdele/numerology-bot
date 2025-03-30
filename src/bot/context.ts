@@ -24,6 +24,8 @@ export interface SessionData {
   birthday: string
   interests: Interests[]
   format: ForecastFormat
+  psychoQuestions: string
+  psychoAnswers: string
 }
 
 interface ExtendedContextFlavor {
@@ -40,5 +42,15 @@ export type Context = ConversationFlavor<
       I18nFlavor &
       AutoChatActionFlavor
     >
+  >
+>
+
+export type ConversationContext = ParseModeFlavor<
+  HydrateFlavor<
+    DefaultContext &
+    ExtendedContextFlavor &
+    SessionFlavor<SessionData> &
+    I18nFlavor &
+    AutoChatActionFlavor
   >
 >
