@@ -8,6 +8,7 @@ import { editOrReplyWithInlineKeyboard } from '#root/bot/helpers/keyboard.js'
 import { localize } from '#root/bot/i18n.js'
 import { getFirstPrompt } from '#root/bot/prompts/psychoPrompts.js'
 import { saveContext } from '#root/db/index.js'
+import { logger } from '#root/logger.js'
 import { askAI } from '#root/neural-network/index.js'
 import { InlineKeyboard } from 'grammy'
 
@@ -52,6 +53,8 @@ export async function psychoConversation(conversation: Conversation<Context, Def
   const stickerMessage = await sendClockSticker(ctx)
 
   const aiAnswer = (await conversation.external(async () => await askAI(getFirstPrompt(), answersMessage, problem, rawQuestionsAnswer).catch(() => null))) as PsychoAnswer | null
+
+  logger.info('Parsed answer: ', aiAnswer)
 
   if (!aiAnswer) {
     await ctx.api.deleteMessage(stickerMessage.chat.id, stickerMessage.message_id)
