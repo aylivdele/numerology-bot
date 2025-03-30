@@ -70,11 +70,16 @@ export async function waitForCallbackQuery(conversation: Conversation<Context, D
 export const MOON_STICKER = 'CAACAgEAAxkBAAIFIWfcRxyL42fa4HP0Bq22t5UVdWwHAAKtCAAC43gEAAGElvTjoS7KWjYE'
 export const STAR_STICKER = 'CAACAgEAAxkBAAIFKmfcSOGmLyvHVl8gG6Na1sAQ9tOwAAI2AwACE6IYRClEzyvOgctkNgQ'
 export const EYE_STICKER = 'CAACAgEAAxkBAAIFLGfcSSFn7dE97-15Lhx2gO_Lg8x6AAIlAwACj-vZRmFFqOOdC6ugNgQ'
+export const CLOCK_STICKER = 'CAACAgIAAxkBAAIE_2faw9ux0d0d3oQp-rDKvVSYVBTYAAIjAAMoD2oUJ1El54wgpAY2BA'
 
 const randomStickers = [MOON_STICKER, STAR_STICKER]
 
 export function sendRandomSticker(ctx: DefaultContext, seed: number): Promise<Message> {
   return ctx.replyWithSticker(randomStickers[Math.floor(seed * randomStickers.length)])
+}
+
+export function sendClockSticker(ctx: DefaultContext): Promise<Message> {
+  return ctx.replyWithSticker(CLOCK_STICKER)
 }
 // "sticker": {
 //           "width": 512,
