@@ -1,34 +1,36 @@
-import type { Context, ConversationContext } from '#root/bot/context.js'
+import type { Context } from '#root/bot/context.js'
 import type { PsychoAnswer, QuestionsAnswer } from '#root/bot/prompts/psychoPrompts.js'
 import type { Conversation } from '@grammyjs/conversations'
+import type { Context as DefaultContext } from 'grammy'
 import { MAIN_KEYBOARD, MAIN_MESSAGE } from '#root/bot/conversations/main.js'
 import { splitLongText } from '#root/bot/helpers/conversation.js'
+import { localize } from '#root/bot/i18n.js'
 import { getFirstPrompt } from '#root/bot/prompts/psychoPrompts.js'
 import { saveContext } from '#root/db/index.js'
 import { askAI } from '#root/neural-network/index.js'
 
-export async function psychoConversation(conversation: Conversation<Context, ConversationContext>, ctx: ConversationContext) {
-  await ctx.reply(ctx.t('psycho.start'))
+export async function psychoConversation(conversation: Conversation<Context, DefaultContext>, ctx: DefaultContext) {
+  await ctx.reply(localize.t('ru', 'psycho.start'))
 
   const problem = await conversation.form.text({
-    otherwise: octx => octx.reply(octx.t('only-text')),
+    otherwise: octx => octx.reply(localize.t('ru', 'only-text')),
   })
 
   const rawQuestionsAnswer = (await conversation.external(async () => await askAI(getFirstPrompt(), problem).catch(() => null)))
 
   if (!rawQuestionsAnswer) {
-    await ctx.reply(ctx.t('ai-error'))
+    await ctx.reply(localize.t('ru', 'ai-error'))
     return
   }
 
   const questionsAnswer = JSON.parse(rawQuestionsAnswer) as QuestionsAnswer
 
-  await ctx.reply(ctx.t('psycho.questions'))
+  await ctx.reply(localize.t('ru', 'psycho.questions'))
   const userAnswers = []
   for (const question of questionsAnswer.questions) {
     await ctx.reply(question)
     const userAnswer = await conversation.form.text({
-      otherwise: octx => octx.reply(octx.t('only-text')),
+      otherwise: octx => octx.reply(localize.t('ru', 'only-text')),
     })
     userAnswers.push({ question, answer: userAnswer })
   }
@@ -46,7 +48,7 @@ export async function psychoConversation(conversation: Conversation<Context, Con
   const aiAnswer = (await conversation.external(async () => await askAI(getFirstPrompt(), problem, rawQuestionsAnswer, answersMessage).catch(() => null))) as PsychoAnswer | null
 
   if (!aiAnswer) {
-    await ctx.reply(ctx.t('ai-error'))
+    await ctx.reply(localize.t('ru', 'ai-error'))
     return
   }
   await conversation.external(() => saveContext(ctx.chat!.id, aiAnswer.short_answer, false))

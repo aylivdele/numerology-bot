@@ -15,7 +15,7 @@ if (config.databaseString) {
 }
 
 export function getDbClient() {
-  if (!connected) {
+  if (!client) {
     return undefined
   }
   return client
