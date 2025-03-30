@@ -1,5 +1,6 @@
-import type { Context, ConversationContext } from '#root/bot/context.js'
+import type { Context } from '#root/bot/context.js'
 import type { Conversation } from '@grammyjs/conversations'
+import type { Context as DefaultContext } from 'grammy'
 import { MAIN_KEYBOARD, MAIN_MESSAGE } from '#root/bot/conversations/main.js'
 import { sendRandomSticker, splitLongText } from '#root/bot/helpers/conversation.js'
 import { removeAndReplyWithInlineKeyboard } from '#root/bot/helpers/keyboard.js'
@@ -7,7 +8,7 @@ import { getQuestionPrompt, getQuestionSystemPrompt } from '#root/bot/prompts/qu
 import { askAI } from '#root/neural-network/index.js'
 import { InlineKeyboard } from 'grammy'
 
-export async function questionConversation(conversation: Conversation<Context, ConversationContext>, ctx: ConversationContext, message_id?: number) {
+export async function questionConversation(conversation: Conversation<Context, DefaultContext>, ctx: DefaultContext, message_id?: number) {
   message_id = (await removeAndReplyWithInlineKeyboard(ctx, `Сформулируйте свой вопрос. Например:
     "Когда лучше начинать новый проект?"
     "Стоит ли менять работу в этом месяце?"`, new InlineKeyboard(), message_id))?.message_id ?? message_id
