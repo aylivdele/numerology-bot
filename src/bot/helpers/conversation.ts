@@ -1,12 +1,11 @@
-import type { Context, SessionData } from '#root/bot/context.js'
+import type { Context, ConversationContext, SessionData } from '#root/bot/context.js'
 import type { MaybeArray } from '@grammyjs/commands/out/utils/array.js'
 import type { Conversation } from '@grammyjs/conversations'
 
 import type { InlineKeyboardMarkup, Message } from '@grammyjs/types'
-import type { Context as DefaultContext } from 'grammy'
 import { removeAndReplyWithInlineKeyboard, removeInlineKeyboard } from '#root/bot/helpers/keyboard.js'
 
-export async function updateSession<SessionField extends keyof SessionData>(conversation: Conversation<Context, DefaultContext>, field: SessionField, value: SessionData[SessionField]) {
+export async function updateSession<SessionField extends keyof SessionData>(conversation: Conversation<Context, ConversationContext>, field: SessionField, value: SessionData[SessionField]) {
   return await conversation.external((ctx) => {
     const session = ctx.session
     session[field] = value
@@ -53,7 +52,7 @@ export interface CallbackQueryWithMessage {
   message_id?: number
 }
 
-export async function waitForCallbackQuery(conversation: Conversation<Context, DefaultContext>, waitFor: MaybeArray<string | RegExp>, keyboard: InlineKeyboardMarkup, message_id?: number, otherwise?: string): Promise<CallbackQueryWithMessage> {
+export async function waitForCallbackQuery(conversation: Conversation<Context, ConversationContext>, waitFor: MaybeArray<string | RegExp>, keyboard: InlineKeyboardMarkup, message_id?: number, otherwise?: string): Promise<CallbackQueryWithMessage> {
   while (true) {
     const loopCtx = await conversation.wait()
 
@@ -73,7 +72,7 @@ export const EYE_STICKER = 'CAACAgEAAxkBAAIFLGfcSSFn7dE97-15Lhx2gO_Lg8x6AAIlAwAC
 
 const randomStickers = [MOON_STICKER, STAR_STICKER]
 
-export function sendRandomSticker(ctx: DefaultContext, seed: number): Promise<Message> {
+export function sendRandomSticker(ctx: ConversationContext, seed: number): Promise<Message> {
   return ctx.replyWithSticker(randomStickers[Math.floor(seed * randomStickers.length)])
 }
 // "sticker": {

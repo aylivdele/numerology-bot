@@ -1,7 +1,6 @@
-import type { Context } from '#root/bot/context.js'
+import type { Context, ConversationContext } from '#root/bot/context.js'
 import type { Conversation } from '@grammyjs/conversations'
 import type { ForceReply } from '@grammyjs/types'
-import type { Context as DefaultContext } from 'grammy'
 import { ForecastFormat, Interests } from '#root/bot/context.js'
 import { MAIN_KEYBOARD, MAIN_MESSAGE } from '#root/bot/conversations/main.js'
 import { updateSession, waitForCallbackQuery } from '#root/bot/helpers/conversation.js'
@@ -9,7 +8,7 @@ import { editOrReplyWithInlineKeyboard, removeInlineKeyboard } from '#root/bot/h
 import { logger } from '#root/logger.js'
 import { InlineKeyboard } from 'grammy'
 
-export async function changeSettingsConversation(conversation: Conversation<Context, DefaultContext>, ctx: DefaultContext, message_id?: number) {
+export async function changeSettingsConversation(conversation: Conversation<Context, ConversationContext>, ctx: ConversationContext, message_id?: number) {
   const interests = 'change-interests'
   const format = 'change-format'
   const cancel = 'change-cancel'
@@ -38,7 +37,7 @@ export async function changeSettingsConversation(conversation: Conversation<Cont
   await ctx.reply(MAIN_MESSAGE, { reply_markup: MAIN_KEYBOARD })
 }
 
-export async function settingsConversation(conversation: Conversation<Context, DefaultContext>, ctx: DefaultContext, message_id?: number) {
+export async function settingsConversation(conversation: Conversation<Context, ConversationContext>, ctx: ConversationContext, message_id?: number) {
   if (message_id) {
     await ctx.api.editMessageText(ctx.chat!.id, message_id, 'Введите ваше имя', { reply_markup: new InlineKeyboard() })
   }
@@ -98,7 +97,7 @@ export async function settingsConversation(conversation: Conversation<Context, D
   }
 }
 
-export async function interestsSettingsConversation(conversation: Conversation<Context, DefaultContext>, ctx: DefaultContext, message_id?: number) {
+export async function interestsSettingsConversation(conversation: Conversation<Context, ConversationContext>, ctx: ConversationContext, message_id?: number) {
   const selectedInterests: Interests[] = (await conversation.external(ctx => ctx.session.interests)) ?? []
 
   let menu = conversation.menu()
@@ -129,7 +128,7 @@ export async function interestsSettingsConversation(conversation: Conversation<C
   return message_id
 }
 
-export async function formatSettingsConversation(conversation: Conversation<Context, DefaultContext>, ctx: DefaultContext, message_id?: number) {
+export async function formatSettingsConversation(conversation: Conversation<Context, ConversationContext>, ctx: ConversationContext, message_id?: number) {
   const keyboard: InlineKeyboard = new InlineKeyboard()
 
   for (const entry of Object.entries(ForecastFormat).filter(([key]) => Number.isNaN(Number(key)))) {
