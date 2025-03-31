@@ -64,7 +64,7 @@ export async function createBot(token: string, dependencies: Dependencies, botCo
   }))
   protectedBot.use(localize)
   protectedBot.use(conversations<Context, ConversationContext>({
-    plugins: [autoChatAction(bot.api), hydrateReply, hydrate()],
+    plugins: [autoChatAction(bot.api), hydrateReply, hydrate(), localize],
   }))
   protectedBot.use(mainFeature)
 

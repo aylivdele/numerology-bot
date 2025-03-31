@@ -16,3 +16,7 @@ export function session(options: Options): Middleware<Context> {
 export function checkSession(ctx: Context) {
   return ctx.session && ctx.session.birthday && ctx.session.name && ctx.session.format && ctx.session.interests
 }
+
+export function checkDialog(ctx: Context) {
+  return checkSession(ctx) && ctx.session.dialog
+}

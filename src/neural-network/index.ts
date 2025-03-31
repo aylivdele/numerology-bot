@@ -6,13 +6,13 @@ import OpenAI from 'openai'
 const openai = new OpenAI({
   apiKey: config.networkToken,
 })
-
-export function askAI(systemPrompt: string, userPrompt: string, ...history: string[]): Promise<string | null> {
+export function askAIwithHistory(systemPrompt: string, ...history: string[]): Promise<string | null> {
   const messages: ChatCompletionMessageParam[] = [{ role: 'developer', content: systemPrompt }]
-  if (history && history.length) {
-    messages.push(...(history?.map((content, ind) => ({ role: (ind % 2 === 0 ? 'user' : 'assistant'), content })) as ChatCompletionMessageParam[]))
+  if (!history || !history.length) {
+    return Promise.reject(new Error('empty history'))
   }
-  messages.push({ role: 'user', content: userPrompt })
+  messages.push(...(history?.map((content, ind) => ({ role: (ind % 2 === 0 ? 'user' : 'assistant'), content })) as ChatCompletionMessageParam[]))
+
   return openai.chat.completions.create({
     model: 'gpt-4o-mini',
     store: true,
@@ -23,6 +23,10 @@ export function askAI(systemPrompt: string, userPrompt: string, ...history: stri
       return result.choices[0].message.content
     },
   )
+}
+
+export function askAI(systemPrompt: string, userPrompt: string, ...history: string[]): Promise<string | null> {
+  return askAIwithHistory(systemPrompt, ...history, userPrompt)
 }
 
 export function testNetwork() {
