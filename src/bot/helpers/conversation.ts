@@ -6,7 +6,7 @@ import type { InlineKeyboardMarkup, Message } from '@grammyjs/types'
 import type { Context as DefaultContext } from 'grammy'
 import { removeAndReplyWithInlineKeyboard, removeInlineKeyboard } from '#root/bot/helpers/keyboard.js'
 
-export async function updateSession<SessionField extends keyof SessionData>(conversation: Conversation<Context, DefaultContext>, field: SessionField, value: SessionData[SessionField]) {
+export async function updateSession<SessionField extends keyof SessionData>(conversation: Conversation<Context, Context>, field: SessionField, value: SessionData[SessionField]) {
   return await conversation.external((ctx) => {
     const session = ctx.session
     session[field] = value
@@ -53,7 +53,7 @@ export interface CallbackQueryWithMessage {
   message_id?: number
 }
 
-export async function waitForCallbackQuery(conversation: Conversation<Context, DefaultContext>, waitFor: MaybeArray<string | RegExp>, keyboard: InlineKeyboardMarkup, message_id?: number, otherwise?: string): Promise<CallbackQueryWithMessage> {
+export async function waitForCallbackQuery(conversation: Conversation<Context, Context>, waitFor: MaybeArray<string | RegExp>, keyboard: InlineKeyboardMarkup, message_id?: number, otherwise?: string): Promise<CallbackQueryWithMessage> {
   while (true) {
     const loopCtx = await conversation.wait()
 
@@ -63,7 +63,7 @@ export async function waitForCallbackQuery(conversation: Conversation<Context, D
       }
       return { data: loopCtx.callbackQuery.data, message_id }
     }
-    message_id = (await removeAndReplyWithInlineKeyboard(loopCtx, otherwise ?? 'Пожалуйста, выберите вариант из меню', keyboard, message_id, true))?.message_id ?? message_id
+    message_id = (await removeAndReplyWithInlineKeyboard(loopCtx, otherwise ?? loopCtx.t('only-keyboard'), keyboard, message_id, true))?.message_id ?? message_id
   }
 }
 

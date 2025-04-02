@@ -1,14 +1,13 @@
 import type { Context } from '#root/bot/context.js'
 import type { Conversation } from '@grammyjs/conversations'
-import type { Context as DefaultContext } from 'grammy'
-import { MAIN_KEYBOARD, MAIN_MESSAGE, TO_MAIN_MENU } from '#root/bot/conversations/main.js'
 import { sendRandomSticker, splitLongText, waitForCallbackQuery } from '#root/bot/helpers/conversation.js'
 import { editOrReplyWithInlineKeyboard, removeAndReplyWithInlineKeyboard } from '#root/bot/helpers/keyboard.js'
+import { MAIN_KEYBOARD, MAIN_MESSAGE, TO_MAIN_MENU } from '#root/bot/helpers/main.js'
 import { getAdvicePropmt as getAdvicePrompt, getForecastPrompt, getForecastSystemPrompt } from '#root/bot/prompts/forecastPrompts.js'
 import { askAI } from '#root/neural-network/index.js'
 import { InlineKeyboard } from 'grammy'
 
-export async function forecastConversation(conversation: Conversation<Context, DefaultContext>, ctx: DefaultContext, message_id?: number) {
+export async function forecastConversation(conversation: Conversation<Context, Context>, ctx: Context, message_id?: number) {
   const week = 'forecast-week'
   const month = 'forecast-month'
   const special = 'forecast-special'

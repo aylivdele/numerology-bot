@@ -15,4 +15,10 @@ export const PSYCHO_CONVERSATION = 'Психологический разбор'
 export const PSYCHO_CONVERSATION_ID = 'psycho'
 export const TO_MAIN_MENU = 'Вернуться в меню'
 
+export const TO_MAIN_QUERY = 'main'
+export const CONTINUE_QUERY = 'continue-continue'
+export const CLEAR_QUERY = 'continue-clear'
+
+export const TO_MAIN_KEYBOARD = new InlineKeyboard().text('Вернуться в меню', TO_MAIN_QUERY)
 export const MAIN_KEYBOARD = new InlineKeyboard().text(FORECAST_CONVERSATION, FORECAST_CONVERSATION_ID).row().text(ANALYZE_CONVERSATION, ANALYZE_CONVERSATION_ID).row().text(QUESTION_CONVERSATION, QUESTION_CONVERSATION_ID).row().text(PSYCHO_CONVERSATION, PSYCHO_CONVERSATION_ID).row().text(CHANGE_SETTINGS_CONVERSATION, CHANGE_SETTINGS_CONVERSATION_ID)
+export const CONTINUE_KEYBOARD = new InlineKeyboard().text('Продолжить', CONTINUE_QUERY).row().text('С чистого листа', CLEAR_QUERY)

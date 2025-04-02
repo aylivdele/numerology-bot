@@ -1,15 +1,13 @@
 import type { Context } from '#root/bot/context.js'
 import { GREETING_CONVERSATION } from '#root/bot/conversations/greeting.js'
-import { MAIN_KEYBOARD, MAIN_MESSAGE } from '#root/bot/conversations/main.js'
 import { logHandle } from '#root/bot/helpers/logging.js'
+import { MAIN_KEYBOARD, MAIN_MESSAGE, TO_MAIN_QUERY } from '#root/bot/helpers/main.js'
 import { checkSession } from '#root/bot/middlewares/session.js'
 import { Composer, InlineKeyboard } from 'grammy'
 
 const composer = new Composer<Context>()
 
 const feature = composer.chatType('private')
-
-export const TO_MAIN_QUERY = 'main'
 
 feature.command(TO_MAIN_QUERY, logHandle('command-main'), (ctx) => {
   if (checkSession(ctx)) {

@@ -1,15 +1,33 @@
 import type { Context } from '#root/bot/context.js'
 import type { PsychoAnswer, QuestionsAnswer } from '#root/bot/prompts/psychoPrompts.js'
 import type { Conversation } from '@grammyjs/conversations'
-import { TO_MAIN_QUERY } from '#root/bot/features/main.js'
-import { sendClockSticker, splitLongText } from '#root/bot/helpers/conversation.js'
+import { DialogType } from '#root/bot/context.js'
+import { sendClockSticker, splitLongText, waitForCallbackQuery } from '#root/bot/helpers/conversation.js'
 import { editOrReplyWithInlineKeyboard } from '#root/bot/helpers/keyboard.js'
+import { CONTINUE_KEYBOARD, CONTINUE_QUERY, TO_MAIN_KEYBOARD } from '#root/bot/helpers/main.js'
 import { getFirstPrompt } from '#root/bot/prompts/psychoPrompts.js'
-import { saveContext } from '#root/db/queries/psycho.js'
+import { clearDialog, getFirstDialogMessage, saveContext } from '#root/db/queries/psycho.js'
 import { askAI } from '#root/neural-network/index.js'
 import { InlineKeyboard } from 'grammy'
 
 export async function psychoConversation(conversation: Conversation<Context, Context>, ctx: Context, message_id?: number) {
+  const dialogExists = await conversation.external(() => getFirstDialogMessage(ctx.chat!.id, DialogType.PSYCHO))
+
+  if (dialogExists !== undefined) {
+    message_id = (await editOrReplyWithInlineKeyboard(ctx, ctx.t('dialog.continue', { message: dialogExists }), CONTINUE_KEYBOARD, message_id))?.message_id
+
+    const msg = await waitForCallbackQuery(conversation, /^continue-.+/, CONTINUE_KEYBOARD, message_id)
+    if (msg.data === CONTINUE_QUERY) {
+      await conversation.external(cctx => cctx.session.dialog = 'psycho')
+      await editOrReplyWithInlineKeyboard(ctx, ctx.t('dialog.news-question'), TO_MAIN_KEYBOARD, msg.message_id)
+
+      return
+    }
+    else {
+      await clearDialog(ctx.chat!.id, DialogType.PSYCHO)
+    }
+  }
+
   message_id = (await editOrReplyWithInlineKeyboard(ctx, ctx.t('psycho.start'), new InlineKeyboard(), message_id))?.message_id ?? message_id
 
   const problem = await conversation.form.text({
@@ -39,9 +57,9 @@ export async function psychoConversation(conversation: Conversation<Context, Con
   const userAnswersMessage = userAnswers.reduce((acc, ans, ind) => `${acc}${ind + 1}. ${ans.answer}\n`, '')
 
   await conversation.external(async (ectx) => {
-    await saveContext(ectx.chat!.id, problem, true)
-    await saveContext(ectx.chat!.id, rawQuestionsAnswer, false)
-    await saveContext(ectx.chat!.id, userAnswersMessage, true)
+    await saveContext(ectx.chat!.id, problem, true, DialogType.PSYCHO)
+    await saveContext(ectx.chat!.id, rawQuestionsAnswer, false, DialogType.PSYCHO)
+    await saveContext(ectx.chat!.id, userAnswersMessage, true, DialogType.PSYCHO)
   })
 
   message_id = (await ctx.reply('Ждем ответа от звезд...'))?.message_id
@@ -57,13 +75,13 @@ export async function psychoConversation(conversation: Conversation<Context, Con
 
     return message_id
   }
-  await conversation.external(() => saveContext(ctx.chat!.id, aiAnswer.short_answer, false))
+  await conversation.external(() => saveContext(ctx.chat!.id, aiAnswer.short_answer, false, DialogType.PSYCHO))
 
   const fullAnswer = splitLongText(aiAnswer.full_answer)
   await ctx.api.deleteMessage(stickerMessage.chat.id, stickerMessage.message_id)
 
   for (let i = 0; i < fullAnswer.length; i++) {
-    const markup = (i + 1 === fullAnswer.length) ? ({ reply_markup: new InlineKeyboard().text('Вернуться в меню', TO_MAIN_QUERY) }) : undefined
+    const markup = (i + 1 === fullAnswer.length) ? ({ reply_markup: TO_MAIN_KEYBOARD }) : undefined
     if (i === 0 && ctx.chat?.id && message_id) {
       ctx.api.editMessageText(ctx.chat!.id, message_id, fullAnswer[i], markup)
     }

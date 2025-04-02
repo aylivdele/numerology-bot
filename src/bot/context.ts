@@ -19,6 +19,10 @@ export enum ForecastFormat {
   // SCHEME = 'Графики и схемы',
 }
 
+export enum DialogType {
+  PSYCHO = 'PSYCHO',
+}
+
 export interface SessionData {
   name: string
   birthday: string
