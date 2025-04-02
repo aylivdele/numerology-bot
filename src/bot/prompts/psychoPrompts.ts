@@ -25,14 +25,28 @@ const prompt = `Ты — опытный психолог, работающий �
 export function getFirstPrompt() {
   return prompt
 }
+const requestStr = 'Запрос: '
+const informationStr = 'Информация обо мне:'
 
 export function getFirstUserPrompt(session: SessionData, problem: string) {
-  return `Запрос: ${problem}
+  return `${requestStr}${problem}
 
-  Информация обо мне:
+  ${informationStr}
   Меня зовут ${session.name}, дата моего рождения: ${session.birthday}.
   Интересующие меня темы: ${session.interests.join(', ')}.
   Предпочитаемый формат ответов: "${session.format}".`
+}
+
+//  вытаскивает строку с запросом пользователя из промта, полученного с помощью getFirstUserPrompt
+export function extractProblemFromPrompt(prompt: string) {
+  const requestIndex = prompt.indexOf(requestStr)
+  const informationIndex = prompt.indexOf(informationStr)
+
+  if (requestIndex < 0 || informationIndex < 0) {
+    return prompt
+  }
+
+  return prompt.substring(requestIndex + requestStr.length, informationIndex)
 }
 
 export interface QuestionsAnswer {

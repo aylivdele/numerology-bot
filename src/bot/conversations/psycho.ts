@@ -5,7 +5,7 @@ import { DialogType } from '#root/bot/context.js'
 import { sendClockSticker, splitLongText, waitForCallbackQuery } from '#root/bot/helpers/conversation.js'
 import { editOrReplyWithInlineKeyboard } from '#root/bot/helpers/keyboard.js'
 import { CONTINUE_KEYBOARD, CONTINUE_QUERY, TO_MAIN_KEYBOARD } from '#root/bot/helpers/main.js'
-import { getFirstPrompt, getFirstUserPrompt } from '#root/bot/prompts/psychoPrompts.js'
+import { extractProblemFromPrompt, getFirstPrompt, getFirstUserPrompt } from '#root/bot/prompts/psychoPrompts.js'
 import { clearDialog, getFirstDialogMessage, saveContext } from '#root/db/queries/psycho.js'
 import { askAI } from '#root/neural-network/index.js'
 import { InlineKeyboard } from 'grammy'
@@ -14,7 +14,8 @@ export async function psychoConversation(conversation: Conversation<Context, Con
   const dialogExists = await conversation.external(() => getFirstDialogMessage(ctx.chat!.id, DialogType.PSYCHO))
 
   if (dialogExists !== undefined) {
-    message_id = (await editOrReplyWithInlineKeyboard(ctx, ctx.t('dialog.continue', { message: dialogExists }), CONTINUE_KEYBOARD, message_id))?.message_id
+    const myProblem = extractProblemFromPrompt(dialogExists)
+    message_id = (await editOrReplyWithInlineKeyboard(ctx, ctx.t('dialog.continue', { message: myProblem }), CONTINUE_KEYBOARD, message_id))?.message_id
 
     const msg = await waitForCallbackQuery(conversation, /^continue-.+/, CONTINUE_KEYBOARD, message_id)
     if (msg.data === CONTINUE_QUERY) {
