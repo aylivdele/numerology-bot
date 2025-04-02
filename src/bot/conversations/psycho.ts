@@ -20,7 +20,7 @@ export async function psychoConversation(conversation: Conversation<Context, Con
     const msg = await waitForCallbackQuery(conversation, /^continue-.+/, CONTINUE_KEYBOARD, message_id)
     if (msg.data === CONTINUE_QUERY) {
       await conversation.external(cctx => cctx.session.dialog = 'psycho')
-      await editOrReplyWithInlineKeyboard(ctx, ctx.t('dialog.news-question'), TO_MAIN_KEYBOARD, msg.message_id)
+      await editOrReplyWithInlineKeyboard(ctx, ctx.t('dialog.news-question'), new InlineKeyboard(), msg.message_id)
 
       return
     }
