@@ -46,7 +46,7 @@ export function extractProblemFromPrompt(prompt: string) {
     return prompt
   }
 
-  return prompt.substring(requestIndex + requestStr.length, informationIndex)
+  return prompt.substring(requestIndex + requestStr.length, informationIndex).trim()
 }
 
 export interface QuestionsAnswer {
