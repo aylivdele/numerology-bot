@@ -1,6 +1,5 @@
 import type { Context } from '#root/bot/context.js'
 import type { Conversation } from '@grammyjs/conversations'
-import type { Context as DefaultContext } from 'grammy'
 import { sendRandomSticker, splitLongText, waitForCallbackQuery } from '#root/bot/helpers/conversation.js'
 import { editOrReplyWithInlineKeyboard } from '#root/bot/helpers/keyboard.js'
 import { MAIN_KEYBOARD, MAIN_MESSAGE } from '#root/bot/helpers/main.js'
@@ -8,7 +7,7 @@ import { getAnalyzePrompt, getAnalyzeSystemPrompt } from '#root/bot/prompts/anal
 import { askAI } from '#root/neural-network/index.js'
 import { InlineKeyboard } from 'grammy'
 
-export async function analyzeConversation(conversation: Conversation<Context, DefaultContext>, ctx: DefaultContext, message_id?: number) {
+export async function analyzeConversation(conversation: Conversation<Context, Context>, ctx: Context, message_id?: number) {
   const strongs = 'analyze-strongs'
   const path = 'analyze-path'
   const growth = 'analyze-growth'

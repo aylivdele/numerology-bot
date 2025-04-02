@@ -1,6 +1,5 @@
 import type { Context } from '#root/bot/context.js'
 import type { Conversation } from '@grammyjs/conversations'
-import type { Context as DefaultContext } from 'grammy'
 import { settingsConversation } from '#root/bot/conversations/settings.js'
 import { waitForCallbackQuery } from '#root/bot/helpers/conversation.js'
 import { createConversation } from '@grammyjs/conversations'
@@ -8,14 +7,11 @@ import { InlineKeyboard } from 'grammy'
 
 export const GREETING_CONVERSATION = 'greeting'
 
-type ConversationContext =
-  & DefaultContext
-
 const startSettings = 'Начать настройку'
 
 export function greetingConversation() {
   return createConversation(
-    async (conversation: Conversation<Context, ConversationContext>, ctx: ConversationContext) => {
+    async (conversation: Conversation<Context, Context>, ctx: Context) => {
       const startCallbackData = 'start-settings'
       const startKeyboard = new InlineKeyboard().text(startSettings, startCallbackData)
 
