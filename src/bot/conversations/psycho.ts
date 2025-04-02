@@ -5,7 +5,7 @@ import { DialogType } from '#root/bot/context.js'
 import { sendClockSticker, splitLongText, waitForCallbackQuery } from '#root/bot/helpers/conversation.js'
 import { editOrReplyWithInlineKeyboard } from '#root/bot/helpers/keyboard.js'
 import { CONTINUE_KEYBOARD, CONTINUE_QUERY, TO_MAIN_KEYBOARD } from '#root/bot/helpers/main.js'
-import { getFirstPrompt } from '#root/bot/prompts/psychoPrompts.js'
+import { getFirstPrompt, getFirstUserPrompt } from '#root/bot/prompts/psychoPrompts.js'
 import { clearDialog, getFirstDialogMessage, saveContext } from '#root/db/queries/psycho.js'
 import { askAI } from '#root/neural-network/index.js'
 import { InlineKeyboard } from 'grammy'
@@ -34,7 +34,10 @@ export async function psychoConversation(conversation: Conversation<Context, Con
     otherwise: octx => octx.reply(ctx.t('only-text')),
   })
 
-  const rawQuestionsAnswer = (await conversation.external(async () => await askAI(getFirstPrompt(), problem).catch(() => null)))
+  const session = await conversation.external(cctx => cctx.session)
+  const firstUserPrompt = getFirstUserPrompt(session, problem)
+
+  const rawQuestionsAnswer = (await conversation.external(async () => await askAI(getFirstPrompt(), firstUserPrompt).catch(() => null)))
 
   if (!rawQuestionsAnswer) {
     message_id = (await editOrReplyWithInlineKeyboard(ctx, ctx.t('ai-error'), new InlineKeyboard(), message_id))?.message_id
@@ -57,7 +60,7 @@ export async function psychoConversation(conversation: Conversation<Context, Con
   const userAnswersMessage = userAnswers.reduce((acc, ans, ind) => `${acc}${ind + 1}. ${ans.answer}\n`, '')
 
   await conversation.external(async (ectx) => {
-    await saveContext(ectx.chat!.id, problem, true, DialogType.PSYCHO)
+    await saveContext(ectx.chat!.id, firstUserPrompt, true, DialogType.PSYCHO)
     await saveContext(ectx.chat!.id, rawQuestionsAnswer, false, DialogType.PSYCHO)
     await saveContext(ectx.chat!.id, userAnswersMessage, true, DialogType.PSYCHO)
   })
